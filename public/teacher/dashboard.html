@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard | FUGOBPANS</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<link rel="stylesheet" href="/assets/css/dashboard.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="brand"><span class="mark">FG</span> FUGOBPANS</div>
+    <nav id="sidebarNav"></nav>
+  </aside>
+  <div class="drawer-backdrop" id="sidebarBackdrop"></div>
+  <div class="app-main">
+    <header class="app-topbar">
+      <div class="left"><button class="drawer-toggle" data-drawer-target="#appSidebar" aria-label="Open menu"></button><strong>Dashboard</strong></div>
+      <div style="display:flex;align-items:center;gap:14px;position:relative;">
+        <button id="notifBell" class="btn btn-ghost btn-sm" aria-label="Notifications">&#128276;</button>
+        <div id="notifPanel" class="notif-panel hidden"></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span class="avatar" id="userAvatar">--</span><span id="userName" class="text-muted" style="font-size:.85rem;"></span></div>
+        <a href="#" id="logoutBtn" class="btn btn-outline btn-sm">Log out</a>
+      </div>
+    </header>
+    <main class="app-content"><div id="pageRoot"><div class="spinner"></div></div></main>
+  </div>
+</div>
+<script type="module" src="/assets/js/dashboard-teacher.js"></script>
+</body>
+</html>
