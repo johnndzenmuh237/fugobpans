@@ -6,7 +6,7 @@ const { writeAudit } = require('../utils/auditLogger');
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge: 12 * 60 * 60 * 1000,
 };
 
