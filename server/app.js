@@ -20,12 +20,12 @@ const resultsRoutes = require('./routes/results.routes');
 const miscRoutes = require('./routes/misc.routes');
 
 const app = express();
-
 app.use(helmet());
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '').split(',').map((s) => s.trim()).filter(Boolean);
 app.use(cors({
-  origin: (process.env.CLIENT_ORIGIN || '').split(',').map((s) => s.trim()).filter(Boolean) || true,
+  origin: allowedOrigins.length ? allowedOrigins : true,
   credentials: true, // needed so the httpOnly session cookie is sent cross-origin
 }));
 app.use(express.json({ limit: '2mb' }));
