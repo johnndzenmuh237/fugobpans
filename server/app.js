@@ -17,9 +17,12 @@ const attendanceRoutes = require('./routes/attendance.routes');
 const payrollRoutes = require('./routes/payroll.routes');
 const paymentsRoutes = require('./routes/payments.routes');
 const resultsRoutes = require('./routes/results.routes');
+const reviewsRoutes = require('./routes/reviews.routes');
+const assignmentsRoutes = require('./routes/assignments.routes');
 const miscRoutes = require('./routes/misc.routes');
 
 const app = express();
+
 app.use(helmet());
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -43,6 +46,8 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/results', resultsRoutes);
+app.use('/api/reviews', reviewsRoutes);
+app.use('/api/assignments', assignmentsRoutes);
 app.use('/api', miscRoutes); // /api/dashboard/*, /api/notifications, /api/audit-logs, /api/settings
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Endpoint not found.' }));

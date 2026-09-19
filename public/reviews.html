@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reviews & Testimonials | FUGOBPANS</title>
+<meta name="description" content="Read what FUGOBPANS families say, and share your own experience with Full Gospel Bilingual Nursery and Primary School, Souza." />
+<link rel="canonical" href="https://fugobpans.example/reviews.html" />
+<link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div id="siteHeader"></div>
+
+<section class="section">
+  <div class="container" style="max-width:760px;">
+    <div class="section-head">
+      <h1>Reviews &amp; Testimonials</h1>
+      <p>Real feedback from FUGOBPANS families — every review is checked by the school before it appears here.</p>
+    </div>
+
+    <div id="summaryMount" class="card card-pad text-center" style="margin-bottom:28px;"><div class="spinner" style="margin:0 auto;"></div></div>
+
+    <div id="reviewsMount"></div>
+
+    <div class="card card-pad" style="margin-top:32px;">
+      <h2>Leave a Review</h2>
+      <div id="reviewSuccess" class="hidden" style="background:var(--success-100);color:var(--success-600);padding:14px 16px;border-radius:var(--radius-md);margin-bottom:16px;"></div>
+      <form id="reviewForm">
+        <div class="form-grid">
+          <div class="field"><label>Your name *</label><input name="name" required maxlength="120" /></div>
+          <div class="field"><label>Email (optional, never shown publicly)</label><input name="email" type="email" /></div>
+          <div class="field form-row-full">
+            <label>Rating *</label>
+            <select name="rating" required>
+              <option value="">Select a rating…</option>
+              <option value="5">★★★★★ Excellent</option>
+              <option value="4">★★★★☆ Good</option>
+              <option value="3">★★★☆☆ Average</option>
+              <option value="2">★★☆☆☆ Below Average</option>
+              <option value="1">★☆☆☆☆ Poor</option>
+            </select>
+          </div>
+          <div class="field form-row-full"><label>Your review *</label><textarea name="comment" rows="4" required maxlength="1000" placeholder="Tell other families about your experience with FUGOBPANS…"></textarea></div>
+          <!-- Honeypot: hidden from real users via CSS, invisible field bots tend to fill in -->
+          <div class="field form-row-full" style="position:absolute;left:-9999px;" aria-hidden="true">
+            <label>Leave this field blank</label>
+            <input name="website" tabindex="-1" autocomplete="off" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-accent" id="submitReviewBtn">Submit Review</button>
+        <p class="text-muted" style="font-size:.8rem;margin-top:10px;">Reviews are moderated and typically appear within a few days once approved by the school.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div id="siteFooter"></div>
+<script type="module" src="/assets/js/public-layout.js"></script>
+<script type="module" src="/assets/js/public-reviews.js"></script>
+</body>
+</html>

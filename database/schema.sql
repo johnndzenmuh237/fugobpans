@@ -366,3 +366,37 @@ CREATE TABLE id_counters (
   prefix VARCHAR(20) PRIMARY KEY,
   value INT NOT NULL DEFAULT 0
 );
+
+-- ---- Real customer reviews (moderated — never auto-published, spec addendum) ----
+CREATE TYPE review_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(150),
+  rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment VARCHAR(1000) NOT NULL,
+  photo_url VARCHAR(300),
+  status review_status NOT NULL DEFAULT 'PENDING',
+  featured BOOLEAN NOT NULL DEFAULT false,
+  moderated_by UUID REFERENCES users(id),
+  moderated_at TIMESTAMPTZ,
+  submitted_ip VARCHAR(60),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_reviews_status ON reviews(status, created_at DESC);
+
+-- ---- Class assignments (teacher-posted, student-visible) ----
+CREATE TABLE assignments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID NOT NULL REFERENCES classes(id),
+  subject_id UUID REFERENCES subjects(id),
+  academic_session_id UUID NOT NULL REFERENCES academic_sessions(id),
+  title VARCHAR(200) NOT NULL,
+  description VARCHAR(2000),
+  due_date DATE,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_assignments_class ON assignments(class_id, due_date);

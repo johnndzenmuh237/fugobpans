@@ -26,6 +26,7 @@ const NAV = {
     { label: null, links: [
       { key: 'reports', href: '/admin/reports.html', icon: '&#128202;', label: 'Reports' },
       { key: 'notifications', href: '/admin/notifications.html', icon: '&#128276;', label: 'Notifications' },
+      { key: 'reviews', href: '/admin/reviews.html', icon: '&#11088;', label: 'Reviews' },
       { key: 'audit-logs', href: '/admin/audit-logs.html', icon: '&#128272;', label: 'Audit Log' },
       { key: 'settings', href: '/admin/settings.html', icon: '&#9881;', label: 'Settings' },
     ]},
@@ -44,6 +45,7 @@ const NAV = {
       { key: 'classes', href: '/teacher/classes.html', icon: '&#127891;', label: 'My Classes' },
       { key: 'students', href: '/teacher/students.html', icon: '&#128101;', label: 'My Students' },
       { key: 'results', href: '/teacher/results.html', icon: '&#128221;', label: 'Upload Results' },
+      { key: 'assignments', href: '/teacher/assignments.html', icon: '&#128203;', label: 'Assignments' },
       { key: 'attendance', href: '/teacher/attendance.html', icon: '&#128197;', label: 'My Attendance' },
       { key: 'profile', href: '/teacher/profile.html', icon: '&#128100;', label: 'My Profile' },
     ]},
@@ -60,6 +62,7 @@ const NAV = {
       { key: 'dashboard', href: '/student/dashboard.html', icon: '&#9632;', label: 'My Dashboard' },
       { key: 'fees', href: '/student/dashboard.html#fees', icon: '&#128176;', label: 'Fees & Payments' },
       { key: 'results', href: '/student/dashboard.html#results', icon: '&#128221;', label: 'My Results' },
+      { key: 'assignments', href: '/student/dashboard.html#assignments', icon: '&#128203;', label: 'Assignments' },
     ]},
   ],
 };

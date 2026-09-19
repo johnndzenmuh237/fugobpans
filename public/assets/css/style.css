@@ -70,3 +70,55 @@ tbody tr:hover { background:var(--slate-100); }
 .feature-card { background:#fff; border:1px solid var(--slate-200); border-radius:var(--radius-lg); padding:24px; }
 .feature-card .icon-badge { width:46px; height:46px; border-radius:12px; background:var(--indigo-100); color:var(--indigo-600); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:1.2rem; }
 .section { padding:56px 0; } .section-alt { background:#fff; } .section-head { max-width:640px; margin:0 auto 32px; text-align:center; }
+
+/* ---- Announcement ticker (thick header bar, right-to-left, seamless loop) ---- */
+.ticker-bar {
+  background: var(--navy-900);
+  color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  position: relative;
+  z-index: 41;
+}
+.ticker-bar .ticker-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 48px;
+  padding: 11px 0;
+  animation: ticker-scroll 34s linear infinite;
+  will-change: transform;
+}
+.ticker-bar:hover .ticker-track,
+.ticker-bar:focus-within .ticker-track { animation-play-state: paused; }
+.ticker-item { display: inline-flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 600; color: rgba(255,255,255,.92); }
+.ticker-item a { color: var(--amber-500); font-weight: 700; }
+@keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-bar .ticker-track { animation: none; }
+}
+
+/* ---- Sticky mobile call CTA (hidden on desktop) ---- */
+.sticky-cta {
+  display: none;
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 45;
+  background: var(--amber-500); color: var(--navy-900); text-align: center;
+  padding: 14px; border-radius: 999px; font-weight: 700; box-shadow: var(--shadow-lg);
+}
+.sticky-cta:hover { text-decoration: none; background: var(--amber-600); }
+@media (max-width: 767px) {
+  .sticky-cta { display: block; }
+  body { padding-bottom: 72px; } /* keep footer content clear of the sticky button */
+}
+
+/* ---- Cookie consent banner ---- */
+.cookie-consent {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 60;
+  max-width: 640px; margin: 0 auto; background: var(--navy-900); color: #fff;
+  border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-lg);
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
+}
+.cookie-consent p { color: rgba(255,255,255,.85); font-size: 0.84rem; margin: 0; flex: 1 1 320px; }
+.cookie-consent a { color: var(--amber-500); }
+.cookie-consent-actions { display: flex; gap: 8px; flex-shrink: 0; }
+@media (max-width: 480px) { .cookie-consent { left: 10px; right: 10px; bottom: 88px; padding: 14px; } }

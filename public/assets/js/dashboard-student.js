@@ -5,6 +5,7 @@ import { formatCurrency, formatDate, formatDateTime, statusBadge, escapeHtml, qs
 async function main() {
   const profile = await initPortalLayout({ portal: 'STUDENT', activeKey: 'dashboard' });
   const s = await api.get('/students/me');
+  const assignments = await api.get('/assignments/my-class').catch(() => []);
 
   const totalFees = s.invoices.reduce((sum, i) => sum + Number(i.total_amount), 0);
   const totalPaid = s.invoices.reduce((sum, i) => sum + Number(i.amount_paid), 0);
@@ -19,6 +20,7 @@ async function main() {
       <button class="tab-btn is-active" data-tab="profile">My Profile</button>
       <button class="tab-btn" data-tab="fees">Fees &amp; Payments</button>
       <button class="tab-btn" data-tab="results">My Results</button>
+      <button class="tab-btn" data-tab="assignments">Assignments</button>
     </div>
 
     <div data-tab-panel="profile" class="card card-pad">
@@ -53,6 +55,18 @@ async function main() {
       <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Term</th><th>Score</th></tr></thead><tbody>
         ${s.results.map((r) => `<tr><td>${escapeHtml(r.subject_name)}</td><td>${escapeHtml(r.term)}</td><td><strong>${r.score}</strong> / ${r.max_score}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No results have been entered yet.</div></td></tr>'}
       </tbody></table></div>
+    </div>
+
+    <div data-tab-panel="assignments" class="card card-pad hidden">
+      ${assignments.length ? assignments.map((a) => `
+        <div class="card card-pad" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <strong>${escapeHtml(a.title)}</strong>
+            ${a.due_date ? `<span class="badge badge-warning">Due ${formatDate(a.due_date)}</span>` : ''}
+          </div>
+          <p class="text-muted" style="font-size:.82rem;margin:4px 0 8px;">${escapeHtml(a.class_name)}${a.subject_name ? ` · ${escapeHtml(a.subject_name)}` : ''}</p>
+          ${a.description ? `<p>${escapeHtml(a.description)}</p>` : ''}
+        </div>`).join('') : '<div class="empty-state">No assignments posted for your class yet.</div>'}
     </div>
   `;
 

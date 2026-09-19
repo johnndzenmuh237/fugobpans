@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /accountant/
+Disallow: /teacher/
+Disallow: /employee/
+Disallow: /student/
+Disallow: /login.html
+
+Sitemap: https://fugobpans.example/sitemap.xml
