@@ -21,6 +21,7 @@ const STATUS_BADGE = {
   ACTIVE: 'badge-success', SUSPENDED: 'badge-warning', GRADUATED: 'badge-info', WITHDRAWN: 'badge-neutral',
   PRESENT: 'badge-success', ABSENT: 'badge-danger', LATE: 'badge-warning', LEAVE: 'badge-neutral', NOT_MARKED: 'badge-neutral',
   SUCCESSFUL: 'badge-success', FAILED: 'badge-danger', PAID: 'badge-success',
+  OVERDUE: 'badge-danger',
 };
 export function statusBadge(status) {
   const cls = STATUS_BADGE[status] || 'badge-neutral';

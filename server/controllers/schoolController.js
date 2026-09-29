@@ -61,7 +61,7 @@ const attendanceController = {
 const payrollController = {
   updateSalary: asyncHandler(async (req, res) => res.status(201).json(await payroll.updateSalary(req.body, req.user))),
   generate: asyncHandler(async (req, res) => res.status(201).json(await payroll.generatePayroll(req.body, req.user))),
-  markPaid: asyncHandler(async (req, res) => res.json(await payroll.markPayrollItemPaid(req.params.itemId, req.user))),
+  markPaid: asyncHandler(async (req, res) => res.json(await payroll.markPayrollItemPaid(req.params.itemId, req.user, req.body?.amount))),
   listRuns: asyncHandler(async (req, res) => res.json(await payroll.listPayrollRuns())),
   listItems: asyncHandler(async (req, res) => res.json(await payroll.listPayrollItems(req.params.runId))),
 };

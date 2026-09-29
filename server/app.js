@@ -20,6 +20,7 @@ const resultsRoutes = require('./routes/results.routes');
 const reviewsRoutes = require('./routes/reviews.routes');
 const assignmentsRoutes = require('./routes/assignments.routes');
 const miscRoutes = require('./routes/misc.routes');
+const businessRoutes = require('./routes/business.routes');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/results', resultsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/assignments', assignmentsRoutes);
+app.use('/api/business', businessRoutes); // expenses, budgets, debts, sales, inventory, income statement
 app.use('/api', miscRoutes); // /api/dashboard/*, /api/notifications, /api/audit-logs, /api/settings
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Endpoint not found.' }));

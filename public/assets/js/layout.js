@@ -23,8 +23,16 @@ const NAV = {
       { key: 'attendance', href: '/admin/attendance.html', icon: '&#128197;', label: 'Attendance' },
       { key: 'payroll', href: '/admin/payroll.html', icon: '&#128181;', label: 'Payroll' },
     ]},
+    { label: 'Business Management', links: [
+      { key: 'expenses', href: '/admin/expenses.html', icon: '&#128184;', label: 'Expenses' },
+      { key: 'income-statement', href: '/admin/income-statement.html', icon: '&#128202;', label: 'Income Statement' },
+      { key: 'budgets', href: '/admin/budgets.html', icon: '&#128203;', label: 'Budgets' },
+      { key: 'debts', href: '/admin/debts.html', icon: '&#9888;', label: 'Debts & Salaries' },
+      { key: 'sales', href: '/admin/sales.html', icon: '&#128176;', label: 'Sales' },
+      { key: 'inventory', href: '/admin/inventory.html', icon: '&#128230;', label: 'Inventory' },
+    ]},
     { label: null, links: [
-      { key: 'reports', href: '/admin/reports.html', icon: '&#128202;', label: 'Reports' },
+      { key: 'reports', href: '/admin/reports.html', icon: '&#128200;', label: 'Reports' },
       { key: 'notifications', href: '/admin/notifications.html', icon: '&#128276;', label: 'Notifications' },
       { key: 'reviews', href: '/admin/reviews.html', icon: '&#11088;', label: 'Reviews' },
       { key: 'audit-logs', href: '/admin/audit-logs.html', icon: '&#128272;', label: 'Audit Log' },
@@ -37,6 +45,13 @@ const NAV = {
       { key: 'payments', href: '/accountant/payments.html', icon: '&#128179;', label: 'Payments' },
       { key: 'outstanding', href: '/accountant/outstanding-fees.html', icon: '&#9888;', label: 'Outstanding Fees' },
       { key: 'receipts', href: '/accountant/receipts.html', icon: '&#128196;', label: 'Receipts' },
+    ]},
+    { label: 'Business Management', links: [
+      { key: 'expenses', href: '/admin/expenses.html', icon: '&#128184;', label: 'Expenses' },
+      { key: 'income-statement', href: '/admin/income-statement.html', icon: '&#128202;', label: 'Income Statement' },
+      { key: 'debts', href: '/admin/debts.html', icon: '&#9888;', label: 'Debts & Salaries' },
+      { key: 'sales', href: '/admin/sales.html', icon: '&#128176;', label: 'Sales' },
+      { key: 'inventory', href: '/admin/inventory.html', icon: '&#128230;', label: 'Inventory' },
     ]},
   ],
   TEACHER: [
@@ -107,9 +122,13 @@ async function wireNotifications() {
 }
 
 export async function initPortalLayout({ portal, activeKey }) {
-  const profile = await requireRole(ROLE_GROUPS[portal]);
+  // `portal` is usually a single role key (e.g. 'MANAGER'), but pages shared
+  // across roles (like the Business Management pages, open to Manager AND
+  // Accountant) can pass an array of allowed roles instead.
+  const allowedRoles = Array.isArray(portal) ? portal : ROLE_GROUPS[portal];
+  const profile = await requireRole(allowedRoles);
   const navEl = document.getElementById('sidebarNav');
-  if (navEl) navEl.innerHTML = renderSidebar(portal, activeKey);
+  if (navEl) navEl.innerHTML = renderSidebar(profile.role, activeKey);
   const nameEl = document.getElementById('userName');
   const avatarEl = document.getElementById('userAvatar');
   if (nameEl) nameEl.textContent = profile.name || profile.email;

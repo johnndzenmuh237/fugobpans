@@ -23,6 +23,17 @@ async function main() {
       ${card('Present Today', d.attendanceToday.present)}
       ${card('Absent Today', d.attendanceToday.absent)}
       ${card('Payroll This Month', formatCurrency(d.payrollThisMonth))}
+      ${card("Today's Income", formatCurrency(d.business.todayIncome))}
+      ${card("Today's Expenses", formatCurrency(d.business.todayExpenses))}
+      ${card("Today's Profit/Loss", formatCurrency(d.business.todayProfitLoss))}
+      ${card('Monthly Income', formatCurrency(d.business.monthlyIncome))}
+      ${card('Monthly Expenses', formatCurrency(d.business.monthlyExpenses))}
+      ${card('Monthly Profit/Loss', formatCurrency(d.business.monthlyProfitLoss))}
+      ${card('Outstanding Debts', formatCurrency(d.business.outstandingDebts))}
+      ${card('Outstanding Salaries', formatCurrency(d.business.outstandingSalaries))}
+      ${card('Total Sales', d.business.salesCount)}
+      ${card('Stock Value', formatCurrency(d.business.stockValue))}
+      ${card('Low Stock Items', d.business.lowStockItems)}
     `;
   } catch {
     grid.innerHTML = '<div class="empty-state">Could not load dashboard data.</div>';

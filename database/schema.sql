@@ -288,7 +288,7 @@ CREATE TABLE salary_history (
 );
 CREATE INDEX idx_salary_employee ON salary_history(employee_id, effective_date DESC);
 
-CREATE TYPE payroll_status AS ENUM ('PENDING', 'APPROVED', 'PAID');
+CREATE TYPE payroll_status AS ENUM ('PENDING', 'APPROVED', 'PAID', 'PARTIALLY_PAID');
 
 CREATE TABLE payroll_runs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -308,6 +308,8 @@ CREATE TABLE payroll_items (
   allowances NUMERIC(12,2) NOT NULL DEFAULT 0,
   deductions NUMERIC(12,2) NOT NULL DEFAULT 0,
   net_salary NUMERIC(12,2) NOT NULL,
+  amount_paid NUMERIC(12,2) NOT NULL DEFAULT 0,
+  due_date DATE,
   status payroll_status NOT NULL DEFAULT 'PENDING',
   paid_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -400,3 +402,128 @@ CREATE TABLE assignments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_assignments_class ON assignments(class_id, due_date);
+
+-- ---- Business Management module (Migration 5): expenses, budgets, ----
+-- ---- debts/credit, sales, inventory — merged here for fresh installs ----
+CREATE TABLE expense_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(80) UNIQUE NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO expense_categories (name) VALUES
+  ('Salaries'), ('Utilities'), ('Electricity'), ('Water'), ('Internet'),
+  ('School Supplies'), ('Maintenance'), ('Repairs'), ('Transport'),
+  ('Marketing'), ('Rent'), ('Equipment'), ('Cleaning'), ('Stock Purchases'), ('Other');
+
+CREATE TABLE expenses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reference VARCHAR(30) UNIQUE NOT NULL,
+  category_id UUID NOT NULL REFERENCES expense_categories(id),
+  description VARCHAR(300),
+  amount NUMERIC(12,2) NOT NULL,
+  expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  payment_method VARCHAR(30) NOT NULL DEFAULT 'CASH',
+  vendor VARCHAR(150),
+  recorded_by UUID REFERENCES users(id),
+  auto_generated BOOLEAN NOT NULL DEFAULT false,
+  notes VARCHAR(500),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_expenses_date ON expenses(expense_date);
+CREATE INDEX idx_expenses_category ON expenses(category_id);
+
+CREATE TABLE budgets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID NOT NULL REFERENCES expense_categories(id),
+  period VARCHAR(7) NOT NULL,
+  amount NUMERIC(12,2) NOT NULL,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (category_id, period)
+);
+
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(150) NOT NULL,
+  category VARCHAR(80),
+  unit VARCHAR(30) NOT NULL DEFAULT 'unit',
+  purchase_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+  selling_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+  quantity_on_hand NUMERIC(12,2) NOT NULL DEFAULT 0,
+  minimum_stock NUMERIC(12,2) NOT NULL DEFAULT 0,
+  supplier VARCHAR(150),
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TYPE stock_movement_type AS ENUM ('PURCHASE', 'SALE', 'ADJUSTMENT');
+CREATE TABLE stock_movements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES products(id),
+  type stock_movement_type NOT NULL,
+  quantity NUMERIC(12,2) NOT NULL,
+  reference VARCHAR(60),
+  notes VARCHAR(300),
+  recorded_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_stock_moves_product ON stock_movements(product_id, created_at DESC);
+
+CREATE TYPE sale_payment_status AS ENUM ('PAID', 'PARTIALLY_PAID', 'UNPAID');
+CREATE TABLE sales (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sale_number VARCHAR(30) UNIQUE NOT NULL,
+  customer_name VARCHAR(150),
+  customer_phone VARCHAR(30),
+  total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+  amount_paid NUMERIC(12,2) NOT NULL DEFAULT 0,
+  balance NUMERIC(12,2) GENERATED ALWAYS AS (total_amount - amount_paid) STORED,
+  status sale_payment_status NOT NULL DEFAULT 'UNPAID',
+  payment_method VARCHAR(30) NOT NULL DEFAULT 'CASH',
+  sold_by UUID REFERENCES users(id),
+  sale_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_sales_date ON sales(sale_date);
+
+CREATE TABLE sale_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sale_id UUID NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id),
+  quantity NUMERIC(12,2) NOT NULL,
+  unit_price NUMERIC(12,2) NOT NULL,
+  line_total NUMERIC(12,2) GENERATED ALWAYS AS (quantity * unit_price) STORED
+);
+CREATE INDEX idx_sale_items_sale ON sale_items(sale_id);
+
+CREATE TYPE debt_status AS ENUM ('UNPAID', 'PARTIALLY_PAID', 'PAID', 'OVERDUE');
+CREATE TABLE debts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reference VARCHAR(30) UNIQUE NOT NULL,
+  debtor_name VARCHAR(150) NOT NULL,
+  debtor_contact VARCHAR(60),
+  description VARCHAR(300),
+  sale_id UUID REFERENCES sales(id),
+  total_amount NUMERIC(12,2) NOT NULL,
+  amount_paid NUMERIC(12,2) NOT NULL DEFAULT 0,
+  balance NUMERIC(12,2) GENERATED ALWAYS AS (total_amount - amount_paid) STORED,
+  due_date DATE,
+  status debt_status NOT NULL DEFAULT 'UNPAID',
+  notes VARCHAR(500),
+  recorded_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_debts_status ON debts(status);
+
+CREATE TABLE debt_payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  debt_id UUID NOT NULL REFERENCES debts(id) ON DELETE CASCADE,
+  amount NUMERIC(12,2) NOT NULL,
+  payment_method VARCHAR(30) NOT NULL DEFAULT 'CASH',
+  recorded_by UUID REFERENCES users(id),
+  paid_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_debt_payments_debt ON debt_payments(debt_id);

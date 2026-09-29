@@ -1,5 +1,38 @@
 const { query } = require('../config/db');
 
+/** Business Management summary cards (spec §26): income, expenses, profit/loss, debts, sales, stock — all live. */
+async function businessSummary() {
+  const [todayIncome, todayExpense, monthIncome, monthExpense, monthSales, salesTotal, stock, debts, salaries] = await Promise.all([
+    query(`SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE status='SUCCESSFUL' AND paid_at::date = CURRENT_DATE`),
+    query(`SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE expense_date = CURRENT_DATE`),
+    query(`SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE status='SUCCESSFUL' AND paid_at >= date_trunc('month', now())`),
+    query(`SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE expense_date >= date_trunc('month', now())`),
+    query(`SELECT COALESCE(SUM(amount_paid),0) AS total FROM sales WHERE sale_date >= date_trunc('month', now())`),
+    query(`SELECT COALESCE(SUM(amount_paid),0) AS total, COUNT(*) AS count FROM sales`),
+    query(`SELECT COALESCE(SUM(quantity_on_hand * purchase_price),0) AS value, COUNT(*) FILTER (WHERE quantity_on_hand <= minimum_stock) AS low_stock FROM products WHERE status='ACTIVE'`),
+    query(`SELECT COALESCE(SUM(total_amount - amount_paid),0) AS total FROM debts WHERE amount_paid < total_amount`),
+    query(`SELECT COALESCE(SUM(net_salary - amount_paid),0) AS total FROM payroll_items WHERE status != 'PAID'`),
+  ]);
+  const todayIn = Number(todayIncome.rows[0].total);
+  const todayOut = Number(todayExpense.rows[0].total);
+  const monthIn = Number(monthIncome.rows[0].total) + Number(monthSales.rows[0].total);
+  const monthOut = Number(monthExpense.rows[0].total);
+  return {
+    todayIncome: todayIn,
+    todayExpenses: todayOut,
+    todayProfitLoss: todayIn - todayOut,
+    monthlyIncome: monthIn,
+    monthlyExpenses: monthOut,
+    monthlyProfitLoss: monthIn - monthOut,
+    totalSales: Number(salesTotal.rows[0].total),
+    salesCount: Number(salesTotal.rows[0].count),
+    stockValue: Number(stock.rows[0].value),
+    lowStockItems: Number(stock.rows[0].low_stock),
+    outstandingDebts: Number(debts.rows[0].total),
+    outstandingSalaries: Number(salaries.rows[0].total),
+  };
+}
+
 /** Top-of-dashboard cards (spec §32). Every number is a live query — nothing cached/hard-coded. */
 async function overview() {
   const [students, finance, employees, attToday, payrollMonth] = await Promise.all([
@@ -25,6 +58,7 @@ async function overview() {
            FROM employee_attendance WHERE date = CURRENT_DATE`),
     query(`SELECT COALESCE(SUM(total_net),0) AS total FROM payroll_runs WHERE period = to_char(now(),'YYYY-MM')`),
   ]);
+  const business = await businessSummary();
 
   return {
     students: students.rows[0],
@@ -32,6 +66,7 @@ async function overview() {
     employees: employees.rows[0],
     attendanceToday: attToday.rows[0],
     payrollThisMonth: payrollMonth.rows[0].total,
+    business,
   };
 }
 
@@ -74,4 +109,4 @@ async function categoryBreakdown() {
   return rows;
 }
 
-module.exports = { overview, registrationsOverview, categoryBreakdown };
+module.exports = { overview, registrationsOverview, categoryBreakdown, businessSummary };
