@@ -16,77 +16,10 @@ way if you'd rather use one of those instead.
 
 ## 0. Before you start
 
-- A GitHub account with this project pushed to a repo — see **Step 0.5**
-  right below if this project isn't on GitHub yet.
+- A GitHub account with this project pushed to a repo (see the Git steps
+  at the end if you haven't done this yet).
 - A Campay account (https://www.campay.net) for Mobile Money payments.
 - About 20–30 minutes.
-
----
-
-## 0.5. Push this project to GitHub (first time)
-
-Do this once, from the folder containing `package.json`, `server/`,
-`public/`, `database/`, etc.
-
-**a) Install Git if you don't have it**
-- Windows: https://git-scm.com/download/win
-- Mac: `brew install git` (or it's already there if you have Xcode tools)
-- Linux: `sudo apt install git`
-
-**b) Tell Git who you are (one-time, per machine)**
-```bash
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
-```
-
-**c) Create an empty repo on GitHub**
-1. Go to https://github.com/new
-2. Repository name: e.g. `fugobpans-erp`
-3. Keep it **empty** — do **not** tick "Add a README", "Add .gitignore",
-   or "Add a license" (this project already has its own `.gitignore`;
-   ticking these creates files that conflict with your first push).
-4. Click **Create repository**. GitHub shows you a repo URL like
-   `https://github.com/<your-username>/fugobpans-erp.git` — copy it.
-
-**d) Initialize and push from your project folder**
-```bash
-cd fugobpans-erp
-git init
-git add .
-git status
-```
-Check the `git status` output: you should **not** see `node_modules/`,
-`.env`, or `*.log` listed — the `.gitignore` already in this project
-excludes them. If you do see `.env` listed, stop and check you actually
-have a `.gitignore` file at the repo root before continuing (never commit
-real secrets to GitHub).
-
-```bash
-git commit -m "Initial commit: FUGOBPANS ERP with Business Management module"
-git branch -M main
-git remote add origin https://github.com/<your-username>/fugobpans-erp.git
-git push -u origin main
-```
-
-If GitHub asks for a password over HTTPS: GitHub no longer accepts your
-account password here. Either:
-- Use a **Personal Access Token** instead of a password (GitHub →
-  Settings → Developer settings → Personal access tokens → Tokens
-  (classic) → Generate new token → give it `repo` scope → paste the token
-  when Git prompts for a password), or
-- Use SSH instead: generate a key with `ssh-keygen -t ed25519 -C
-  "you@example.com"`, add it at GitHub → Settings → SSH and GPG keys, and
-  use the `git@github.com:<user>/<repo>.git` remote URL instead of the
-  `https://` one.
-
-**e) Every time you make changes later**
-```bash
-git add .
-git commit -m "Describe what changed"
-git push
-```
-That's the entire workflow going forward — no `git init` or `remote add`
-needed again for this repo.
 
 ---
 
@@ -148,16 +81,11 @@ You should see:
 ```
 
 If your database was created **before** the Student Portal / Results
-feature or the Business Management module were added, also run these
-incremental migrations once, in order:
+feature was added, also run the incremental migration once:
 ```bash
-node scripts/apply-migration.js database/migration-2-student-portal.sql
-node scripts/apply-migration.js database/migration-3-reviews.sql
-node scripts/apply-migration.js database/migration-4-assignments.sql
-node scripts/apply-migration.js database/migration-5-business.sql
+psql "$DATABASE_URL" -f database/migration-2-student-portal.sql
 ```
-(Brand new databases don't need any of this — `schema.sql` already includes
-all four merged in.)
+(Brand new databases don't need this — `schema.sql` already includes it.)
 
 ---
 
@@ -193,16 +121,26 @@ The frontend is just files — any static host works. Two easy options:
 ### Option A — Vercel
 1. https://vercel.com → **Add New → Project** → import the same repo.
 2. **Framework Preset:** Other.
-3. **Root Directory:** `public` — this repo already keeps `assets/` inside
-   `public/assets/`, so `index.html`, `/assets/css/style.css`,
-   `/assets/js/*.js` etc. all resolve correctly with no extra config.
-4. Deploy. You'll get a URL like `https://fugobpans.vercel.app`.
+3. **Root Directory:** `public` (this tells Vercel the site root is your `public/` folder, so `index.html` etc. serve correctly).
+4. **Important:** the `assets/` folder lives *next to* `public/`, not inside it, in this repo — so before deploying, either:
+   - (a) move `assets/` into `public/assets/` in your repo (recommended — one clean static root), **or**
+   - (b) add a Vercel rewrite so `/assets/*` on the deployed site maps to the `assets/` folder at the repo root.
+   
+   Path (a) is simpler. If you go that route:
+   ```bash
+   mv assets public/assets
+   git add .
+   git commit -m "Move assets into public/ for static hosting"
+   git push
+   ```
+5. Deploy. You'll get a URL like `https://fugobpans.vercel.app`.
 
 ### Option B — Netlify
-Same idea: **New site from Git → Base directory: (repo root) → Publish directory: `public`**.
+Same idea: **New site from Git → Base directory: (repo root) → Publish directory: `public`**, with the same `assets/` note as above.
 
 ### Point the frontend at your deployed API
-Edit `public/assets/js/config.js` and set:
+Edit `assets/js/config.js` (or `public/assets/js/config.js` if you moved
+it) and set:
 ```js
 window.APP_CONFIG = {
   API_BASE_URL: 'https://fugobpans-api.onrender.com/api',
@@ -308,10 +246,6 @@ recommended instead unless you want to add that endpoint yourself.
 - [ ] Manager can create a Worker, and that worker immediately appears on **Attendance**
 - [ ] Manager can assign a teacher to a class/subject, and that teacher's login shows the class under **My Classes** with the auto-populated student list under **Upload Results**
 - [ ] Manager can create a Student Portal login from a student's profile, and that student can log in and see their own fees/results only
-- [ ] Manager can record an Expense under **Business Management → Expenses** and see it reflected on **Income Statement**
-- [ ] Manager can add a Product under **Inventory**, record a stock purchase, and see the stock value/expense update
-- [ ] Recording a Sale with a partial payment creates an entry under **Debts & Salaries**
-- [ ] Paying a staff member's salary under **Debts & Salaries** removes them from the outstanding list once fully paid
 
 ---
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Track My Child's Record | FUGOBPANS</title>
+<meta name="description" content="Check your child's fees, results, and updates using their tracking code — no account needed." />
+<link rel="canonical" href="https://fugobpans.example/track-student.html" />
+<link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div id="siteHeader"></div>
+
+<section class="section">
+  <div class="container" style="max-width:640px;">
+    <div class="section-head">
+      <h1>Track My Child's Record</h1>
+      <p>Enter the tracking code you received at registration to see fees, results, and teacher updates — no login needed. This code is private to you; please don't share it.</p>
+    </div>
+
+    <form id="lookupForm" class="card card-pad" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
+      <div class="field" style="flex:1;min-width:220px;">
+        <label>Tracking Code</label>
+        <input id="codeInput" required placeholder="e.g. 7K4M9P2QR" style="text-transform:uppercase;" />
+      </div>
+      <button type="submit" class="btn btn-accent">Look Up</button>
+    </form>
+
+    <div id="resultMount" style="margin-top:24px;"></div>
+  </div>
+</section>
+
+<div id="siteFooter"></div>
+<script type="module" src="/assets/js/public-layout.js"></script>
+<script type="module" src="/assets/js/track-student.js"></script>
+</body>
+</html>
