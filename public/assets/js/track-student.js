@@ -6,6 +6,26 @@ function escapeHtml(str) {
 function money(n) { return `${Math.round(Number(n)).toLocaleString()} FCFA`; }
 function formatDate(iso) { return iso ? new Date(iso).toLocaleDateString() : '—'; }
 
+async function loadAnnouncements() {
+  const mount = document.getElementById('announcementsMount');
+  try {
+    const items = await fetch(`${API}/announcements/public`).then((r) => r.json());
+    if (!items.length) { mount.innerHTML = '<p class="text-muted">No announcements posted yet.</p>'; return; }
+    const top = items.slice(0, 5);
+    mount.innerHTML = top.map((a) => `
+      <div class="card card-pad" style="margin-bottom:10px;${a.pinned ? 'border-left:4px solid var(--accent, #6366f1);' : ''}">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <strong>${a.pinned ? '📌 ' : ''}${escapeHtml(a.title)}</strong>
+          <span class="text-muted" style="font-size:.76rem;">${formatDate(a.created_at)}</span>
+        </div>
+        <p style="white-space:pre-wrap;margin:8px 0 0;">${escapeHtml(a.body)}</p>
+      </div>`).join('') + (items.length > 5 ? `<a href="/announcements.html" class="text-muted" style="font-size:.85rem;">See all announcements →</a>` : '');
+  } catch {
+    mount.innerHTML = '<p class="text-muted">Could not load announcements right now.</p>';
+  }
+}
+loadAnnouncements();
+
 document.getElementById('lookupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const code = document.getElementById('codeInput').value.trim().toUpperCase();

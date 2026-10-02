@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>New Registration | FUGOBPANS Manager</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<link rel="stylesheet" href="/assets/css/dashboard.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="brand"><span class="mark">FG</span> FUGOBPANS</div>
+    <nav id="sidebarNav"></nav>
+  </aside>
+  <div class="drawer-backdrop" id="sidebarBackdrop"></div>
+  <div class="app-main">
+    <header class="app-topbar">
+      <div class="left"><button class="drawer-toggle" data-drawer-target="#appSidebar" aria-label="Open menu"></button><strong>New Registration</strong></div>
+      <div style="display:flex;align-items:center;gap:14px;position:relative;">
+        <button id="notifBell" class="btn btn-ghost btn-sm" aria-label="Notifications">&#128276;</button>
+        <div id="notifPanel" class="notif-panel hidden"></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span class="avatar" id="userAvatar">--</span><span id="userName" class="text-muted" style="font-size:.85rem;"></span></div>
+        <a href="#" id="logoutBtn" class="btn btn-outline btn-sm">Log out</a>
+      </div>
+    </header>
+    <main class="app-content">
+      <div class="page-head"><div><h1>New Registration</h1><p class="text-muted">Register a student who came in physically — the exact same form families use online.</p></div><div id="pageActions"></div></div>
+
+      <div id="successPanel" class="card card-pad hidden text-center">
+        <h2>✅ Registration Complete</h2>
+        <p>Registration number: <strong id="regNumber" class="mono"></strong></p>
+        <p>Student ID: <strong id="studentCode" class="mono"></strong></p>
+        <p>Class: <strong id="className"></strong></p>
+        <div class="card card-pad" style="background:var(--accent-soft,#f0f4ff);margin:16px auto;max-width:420px;">
+          <div class="text-muted" style="font-size:.85rem;">TRACKING CODE — GIVE THIS TO THE GUARDIAN</div>
+          <div class="mono" id="trackingCode" style="font-size:1.6rem;font-weight:800;letter-spacing:2px;margin:6px 0;"></div>
+          <p class="text-muted" style="font-size:.8rem;margin:0;">They can use this any time at <strong>/track-student.html</strong> to check fees, results, and updates — no account needed.</p>
+        </div>
+        <div class="invoice-summary" style="max-width:340px;margin:16px auto;">
+          <div class="item"><div class="text-muted">Total Due</div><div class="amt" id="invoiceTotal"></div></div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <a href="/admin/payments.html" class="btn btn-accent">Record a Payment</a>
+          <button id="registerAnotherBtn" class="btn btn-outline">Register Another Student</button>
+        </div>
+      </div>
+
+      <form id="regForm" class="card card-pad">
+        <fieldset>
+          <legend>Class</legend>
+          <div class="field"><label>Selected class *</label><select name="classId" id="classSelect" required><option value="">Loading…</option></select></div>
+        </fieldset>
+        <fieldset>
+          <legend>Student Details</legend>
+          <div class="form-grid">
+            <div class="field"><label>First name *</label><input name="firstName" required /></div>
+            <div class="field"><label>Middle name</label><input name="middleName" /></div>
+            <div class="field"><label>Last name *</label><input name="lastName" required /></div>
+            <div class="field"><label>Date of birth *</label><input name="dateOfBirth" type="date" required /></div>
+            <div class="field"><label>Gender *</label><select name="gender" required><option value="">Select…</option><option value="MALE">Male</option><option value="FEMALE">Female</option></select></div>
+            <div class="field"><label>Nationality</label><input name="nationality" value="Cameroonian" /></div>
+            <div class="field"><label>Previous school</label><input name="previousSchool" /></div>
+            <div class="field"><label>Previous class</label><input name="previousClass" /></div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Parent / Guardian Details</legend>
+          <div class="form-grid">
+            <div class="field"><label>Full name *</label><input name="guardianName" required /></div>
+            <div class="field"><label>Relationship</label><input name="guardianRelationship" placeholder="Mother / Father / Guardian" /></div>
+            <div class="field"><label>Phone number *</label><input name="guardianPhone" required placeholder="6XX XXX XXX" /></div>
+            <div class="field"><label>WhatsApp</label><input name="guardianWhatsapp" /></div>
+            <div class="field"><label>Email</label><input name="guardianEmail" type="email" /></div>
+            <div class="field form-row-full"><label>Address</label><input name="guardianAddress" /></div>
+            <div class="field"><label>Emergency contact</label><input name="emergencyContact" /></div>
+          </div>
+        </fieldset>
+        <button type="submit" class="btn btn-accent btn-block" id="submitBtn">Submit Registration</button>
+      </form>
+    </main>
+  </div>
+</div>
+<script type="module" src="/assets/js/new-registration-admin.js"></script>
+</body>
+</html>

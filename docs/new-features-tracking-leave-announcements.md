@@ -88,6 +88,24 @@ node scripts/backfill-tracking-codes.js
 (A brand-new database created from `schema.sql` already includes
 everything — no separate migration needed, and nothing to backfill.)
 
+## 6. Staff-side registration (walk-in/physical registrations)
+The Manager/Accountant portal now has **New Registration**
+(`/admin/new-registration.html`) — the exact same form families use on the
+public site, submitting to a staff-only endpoint
+(`POST /api/registrations/staff`) instead of the public one, so office use
+all day isn't limited by the public anti-spam rate limiter. Functionally
+identical to the public flow (same validation, same tracking code
+generation, same invoice creation) — just tagged in the audit log as
+`STAFF_RECORD_REGISTRATION` so it's clear who entered it. Also linked from
+the **Registrations** list page.
+
+## 7. Student Dashboard (announcements + tracking code, one page)
+`/track-student.html` is now framed as the **Student Dashboard**: general
+school announcements (from the same board Managers post to) show at the
+top for everyone, and the tracking-code box below loads that one
+student's own fees/results/notes — all on the same page, no login. Linked
+from the main site nav and the footer as "Student Dashboard".
+
 ## Settings to fill in
 Under **Settings**, the Manager should fill in: `momoMtnNumber`,
 `momoMtnName`, `momoOrangeNumber`, `momoOrangeName`, and
