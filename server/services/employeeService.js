@@ -45,6 +45,9 @@ async function createEmployee(body, actor) {
 
 async function createEmployeeLogin({ employeeId, email, password, role }, actor) {
   const { hashPassword } = require('./authService');
+  // Staff logins are limited to staff roles. Management posts and the Owner are created only by the Owner (see /api/owner/management).
+  if (!['TEACHER', 'EMPLOYEE', 'ACCOUNTANT'].includes(role)) throw new AppError('role must be TEACHER, EMPLOYEE or ACCOUNTANT.', 400);
+  if (!email || !password || String(password).length < 8) throw new AppError('email and a password of at least 8 characters are required.', 400);
   const hash = await hashPassword(password);
   const empRes = await query('SELECT * FROM employees WHERE id = $1', [employeeId]);
   if (!empRes.rows.length) throw new AppError('Employee not found.');

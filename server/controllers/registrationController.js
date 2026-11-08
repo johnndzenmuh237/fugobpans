@@ -1,3 +1,5 @@
+const { assertCanAccessStudent, teacherClassIds } = require('../utils/access');
+const { isManagementLevel } = require('../middleware/roles');
 const { query } = require('../config/db');
 const { asyncHandler, AppError } = require('../middleware/error-handler');
 const registrationService = require('../services/registrationService');
@@ -21,6 +23,10 @@ const listStudents = asyncHandler(async (req, res) => {
   let sql = `SELECT s.*, c.name AS class_name, cat.name AS category_name FROM students s
              JOIN classes c ON c.id = s.class_id JOIN categories cat ON cat.id = c.category_id WHERE 1=1`;
   const params = [];
+  if (req.user.role === 'TEACHER') {
+    // Teachers only ever see students in classes they are assigned to.
+    params.push(await teacherClassIds(req.user)); sql += ` AND s.class_id = ANY($${params.length}::uuid[])`;
+  }
   if (req.query.classId) { params.push(req.query.classId); sql += ` AND s.class_id = $${params.length}`; }
   if (req.query.status) { params.push(req.query.status); sql += ` AND s.status = $${params.length}`; }
   if (req.query.q) {
@@ -33,16 +39,26 @@ const listStudents = asyncHandler(async (req, res) => {
 });
 
 const getStudentProfile = asyncHandler(async (req, res) => {
+  await assertCanAccessStudent(req.user, req.params.id);
   const studentRes = await query(
-    `SELECT s.*, c.name AS class_name, cat.name AS category_name FROM students s
-     JOIN classes c ON c.id = s.class_id JOIN categories cat ON cat.id = c.category_id WHERE s.id = $1`,
+    `SELECT s.*, c.name AS class_name, cat.name AS category_name, ses.name AS session_name FROM students s
+     JOIN classes c ON c.id = s.class_id JOIN categories cat ON cat.id = c.category_id
+     JOIN academic_sessions ses ON ses.id = s.academic_session_id WHERE s.id = $1`,
     [req.params.id]
   );
   if (!studentRes.rows.length) throw new AppError('Student not found.', 404);
-  const invoicesRes = await query('SELECT * FROM invoices WHERE student_id = $1 ORDER BY created_at DESC', [req.params.id]);
-  const paymentsRes = await query('SELECT * FROM payments WHERE student_id = $1 ORDER BY created_at DESC', [req.params.id]);
-  const results = await require('../services/examResultsService').resultsForStudent(req.params.id);
-  res.json({ ...studentRes.rows[0], invoices: invoicesRes.rows, payments: paymentsRes.rows, results });
+  const role = req.user.role;
+  const seesFees = role !== 'TEACHER'; // teachers have no business with fee records
+  const [invoicesRes, paymentsRes, results, history] = await Promise.all([
+    seesFees ? query('SELECT * FROM invoices WHERE student_id = $1 ORDER BY created_at DESC', [req.params.id]) : { rows: [] },
+    seesFees ? query('SELECT * FROM payments WHERE student_id = $1 ORDER BY created_at DESC', [req.params.id]) : { rows: [] },
+    require('../services/examResultsService').resultsForStudent(req.params.id, { onlyApproved: ['STUDENT', 'PARENT', 'ACCOUNTANT'].includes(role) }),
+    query(`SELECT h.*, fc.name AS from_class, tc.name AS to_class, fs.name AS from_session, ts.name AS to_session, u.name AS changed_by_name
+           FROM student_history h LEFT JOIN classes fc ON fc.id=h.from_class_id LEFT JOIN classes tc ON tc.id=h.to_class_id
+           LEFT JOIN academic_sessions fs ON fs.id=h.from_session_id LEFT JOIN academic_sessions ts ON ts.id=h.to_session_id
+           LEFT JOIN users u ON u.id=h.changed_by WHERE h.student_id=$1 ORDER BY h.created_at DESC`, [req.params.id]),
+  ]);
+  res.json({ ...studentRes.rows[0], invoices: invoicesRes.rows, payments: paymentsRes.rows, results, history: history.rows });
 });
 
 /** STUDENT self-service — everything the Manager and their teachers have recorded about them (new feature). */

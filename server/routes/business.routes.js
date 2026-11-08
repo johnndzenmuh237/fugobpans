@@ -1,7 +1,10 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/businessController');
 const { requireAuth } = require('../middleware/auth');
-const { ROLES, FINANCE_ROLES, allowRoles } = require('../middleware/roles');
+const { ROLES, FINANCE_ROLES, allowRoles, needs } = require('../middleware/roles');
+
+// Everything in this module is financial: management posts need the Owner-granted "finance" permission.
+router.use(requireAuth, needs('finance'));
 
 // Expense categories — Manager configures, Accountant can view
 router.get('/expense-categories', requireAuth, allowRoles(...FINANCE_ROLES), ctrl.listExpenseCategories);

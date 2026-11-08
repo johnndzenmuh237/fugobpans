@@ -10,6 +10,7 @@ async function load() {
     { key: 'session_name', label: 'Session' },
     { key: 'registration_fee', label: 'Registration Fee', render: (r) => formatCurrency(r.registration_fee) },
     { key: 'school_fee', label: 'School Fee', render: (r) => formatCurrency(r.school_fee) },
+    { key: 'exam_fee', label: 'Exam Fee', render: (r) => formatCurrency(r.exam_fee) },
     { key: 'total', label: 'Total', render: (r) => formatCurrency(r.total) },
     { key: 'installment_allowed', label: 'Installment', render: (r) => (r.installment_allowed ? 'Yes' : 'No') },
   ]);
@@ -36,12 +37,13 @@ async function main() {
       { name: 'academicSessionId', label: 'Academic Session', type: 'select', required: true, options: sessions.map((s) => ({ value: s.id, label: s.name })) },
       { name: 'registrationFee', label: 'Registration Fee (FCFA)', type: 'number', required: true },
       { name: 'schoolFee', label: 'School Fee (FCFA)', type: 'number', required: true },
+      { name: 'examFee', label: 'Examination Fee (FCFA)', type: 'number' },
       { name: 'otherFees', label: 'Other Fees (FCFA)', type: 'number' },
       { name: 'installmentAllowed', label: 'Allow Installments', type: 'select', options: [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] },
     ],
     onSubmit: async (v) => {
       await api.post('/academics/fee-structures', {
-        ...v, registrationFee: Number(v.registrationFee), schoolFee: Number(v.schoolFee), otherFees: Number(v.otherFees) || 0,
+        ...v, registrationFee: Number(v.registrationFee), schoolFee: Number(v.schoolFee), examFee: Number(v.examFee) || 0, otherFees: Number(v.otherFees) || 0,
         installmentAllowed: v.installmentAllowed !== 'false',
       });
       toast('Fees saved.', 'success');

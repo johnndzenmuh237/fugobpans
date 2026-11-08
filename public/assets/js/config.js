@@ -1,7 +1,7 @@
 window.APP_CONFIG = {
   // IMPORTANT: keep this pointed at your live deployed API — do not
   // overwrite it with localhost when merging this file into your project.
-  API_BASE_URL: 'https://fugobpans.onrender.com/api',
+  API_BASE_URL: (location.hostname === 'localhost' || location.hostname.endsWith('.onrender.com')) ? '/api' : 'https://fugobpans.onrender.com/api',
   SCHOOL_NAME: 'Full Gospel Bilingual Nursery and Primary School (FUGOBPANS)',
   SCHOOL_EMAIL: 'info@fugobpans.example', // update to the school's real inbox
   CURRENCY: 'FCFA',

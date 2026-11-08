@@ -17,6 +17,11 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
+  max: Number(process.env.DB_POOL_MAX || 10),
+  idleTimeoutMillis: 30000,
+  // Neon suspends idle databases; the first connection after a quiet period can take a few seconds to wake it.
+  connectionTimeoutMillis: Number(process.env.DB_CONNECT_TIMEOUT_MS || 20000),
+  keepAlive: true,
 });
 
 pool.on('error', (err) => {
@@ -25,8 +30,17 @@ pool.on('error', (err) => {
 });
 
 /** Simple query helper for single statements. */
+const TRANSIENT = ['ECONNRESET', 'ETIMEDOUT', 'EPIPE', '57P01', '57P03', '08006', '08001'];
 async function query(text, params) {
-  return pool.query(text, params);
+  try {
+    return await pool.query(text, params);
+  } catch (err) {
+    // A waking or recycled Neon connection can fail once; one retry makes that invisible to users.
+    if (TRANSIENT.includes(err.code) || /Connection terminated|timeout exceeded when trying to connect/i.test(err.message || '')) {
+      return pool.query(text, params);
+    }
+    throw err;
+  }
 }
 
 /**

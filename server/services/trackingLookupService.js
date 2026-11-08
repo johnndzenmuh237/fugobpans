@@ -36,7 +36,7 @@ async function lookupStudentByTrackingCode(code) {
     ),
     query(
       `SELECT r.*, sub.name AS subject_name FROM exam_results r JOIN subjects sub ON sub.id = r.subject_id
-       WHERE r.student_id = $1 ORDER BY r.academic_session_id DESC, r.term, sub.name`,
+       WHERE r.student_id = $1 AND r.status = 'APPROVED' ORDER BY r.academic_session_id DESC, r.term, sub.name`,
       [student.id]
     ),
     query(`SELECT type, note, created_at FROM student_notes WHERE student_id = $1 ORDER BY created_at DESC LIMIT 100`, [student.id]),

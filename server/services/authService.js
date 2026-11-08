@@ -12,9 +12,9 @@ async function verifyPassword(plain, hash) {
   return bcrypt.compare(plain, hash);
 }
 
-function signToken(payload) {
+function signToken(payload, expiresIn = JWT_EXPIRES_IN) {
   if (!JWT_SECRET) throw new Error('JWT_SECRET is not configured — set it in .env.');
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 function verifyToken(token) {

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Properties & Lands | Browse</title>
+<meta name="description" content="Browse houses, apartments, land, completed and unfinished buildings." />
+<link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div id="siteHeader"></div>
+<section class="section"><div class="container"><div class="section-head"><h1>Properties &amp; Lands</h1><p>Completed homes, buildings still under construction, and land.</p></div>
+<div class="chip-row" id="kindChips">
+ <button class="chip is-active" data-kind="">All</button><button class="chip" data-kind="HOUSE">🏠 Houses</button><button class="chip" data-kind="ESTATE">🏘️ Estates &amp; apartments</button><button class="chip" data-kind="LAND">🌿 Land</button><button class="chip" data-kind="COMMERCIAL">🏢 Commercial</button></div>
+<div class="filters-bar"><select id="fBuild"><option value="">Completed &amp; under construction</option><option value="COMPLETED">Completed</option><option value="UNCOMPLETED">Under construction</option></select>
+<select id="fPurpose"><option value="">Rent or sale</option><option value="RENT">For rent</option><option value="SALE">For sale</option></select>
+<input id="fCity" type="search" placeholder="City or area" /><input id="fQ" type="search" placeholder="Search…" /></div>
+<div id="grid"><div class="spinner"></div></div></div></section>
+<div id="siteFooter"></div>
+<script type="module" src="/assets/js/public-layout.js"></script>
+<script type="module" src="/assets/js/pages-public/listings.js"></script>
+</body>
+</html>

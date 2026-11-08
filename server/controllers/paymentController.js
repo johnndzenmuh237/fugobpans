@@ -3,6 +3,7 @@ const { asyncHandler, AppError } = require('../middleware/error-handler');
 const { initiateCollection, checkTransactionStatus, mapMethod } = require('../services/paymentGatewayService');
 const { applyPayment, getInvoice } = require('../services/invoiceService');
 const { notify } = require('../services/notificationService');
+const { notifyPaymentRecorded } = require('../services/feeNotifier');
 const { writeAudit } = require('../utils/auditLogger');
 
 /** PUBLIC — starts a Mobile Money prompt. Does NOT touch the invoice yet. */
@@ -56,6 +57,7 @@ const webhook = asyncHandler(async (req, res) => {
       message: `${student?.first_name || ''} ${student?.last_name || ''} paid ${Number(result.payment.amount).toLocaleString()} FCFA via ${mapMethod(status.operator).replace('_', ' ')}. New status: ${result.invoice.status}.`,
       type: 'SUCCESS',
     });
+    await notifyPaymentRecorded({ payment: result.payment, invoice: result.invoice });
     await writeAudit({ user: null, action: 'PAYMENT_VERIFIED_WEBHOOK', entity: 'payments', entityId: result.payment.id, after: result.payment });
   }
   res.status(200).json({ received: true, applied: !result.alreadyApplied });
@@ -71,6 +73,7 @@ const recordOfficePayment = asyncHandler(async (req, res) => {
     invoiceId, amount, method: method || 'OFFICE_CASH', transactionReference, recordedBy: req.user.uid, notes,
   });
   await writeAudit({ user: req.user, action: 'RECORD_OFFICE_PAYMENT', entity: 'payments', entityId: result.payment.id, after: result.payment, req });
+  if (!result.alreadyApplied) await notifyPaymentRecorded({ payment: result.payment, invoice: result.invoice, actor: req.user });
   res.status(201).json(result);
 });
 

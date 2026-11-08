@@ -10,7 +10,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   try {
     await login(fd.get('email'), fd.get('password'));
   } catch (err) {
-    toast('Invalid email or password.', 'error');
+    
     btn.disabled = false;
     btn.textContent = 'Log In';
   }

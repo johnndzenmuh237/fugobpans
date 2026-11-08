@@ -1,6 +1,7 @@
 import { initPortalLayout } from './layout.js';
 import { api } from './api.js';
 import { formatCurrency, formatDate, formatDateTime, statusBadge, escapeHtml, qs } from './utils.js';
+import { resultsHtml, wireResults, attendanceHtml, scheduleHtml, announcementsHtml } from './portal-sections.js';
 
 async function main() {
   const profile = await initPortalLayout({ portal: 'STUDENT', activeKey: 'dashboard' });
@@ -21,6 +22,9 @@ async function main() {
       <button class="tab-btn" data-tab="fees">Fees &amp; Payments</button>
       <button class="tab-btn" data-tab="results">My Results</button>
       <button class="tab-btn" data-tab="assignments">Assignments</button>
+      <button class="tab-btn" data-tab="attendance">My Attendance</button>
+      <button class="tab-btn" data-tab="schedule">Class Timetable</button>
+      <button class="tab-btn" data-tab="news">Announcements</button>
     </div>
 
     <div data-tab-panel="profile" class="card card-pad">
@@ -51,11 +55,7 @@ async function main() {
       </tbody></table></div>
     </div>
 
-    <div data-tab-panel="results" class="card card-pad hidden">
-      <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Term</th><th>Score</th></tr></thead><tbody>
-        ${s.results.map((r) => `<tr><td>${escapeHtml(r.subject_name)}</td><td>${escapeHtml(r.term)}</td><td><strong>${r.score}</strong> / ${r.max_score}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No results have been entered yet.</div></td></tr>'}
-      </tbody></table></div>
-    </div>
+    <div data-tab-panel="results" class="card card-pad hidden">${resultsHtml(s.results, s.id)}</div>
 
     <div data-tab-panel="assignments" class="card card-pad hidden">
       ${assignments.length ? assignments.map((a) => `
@@ -68,13 +68,20 @@ async function main() {
           ${a.description ? `<p>${escapeHtml(a.description)}</p>` : ''}
         </div>`).join('') : '<div class="empty-state">No assignments posted for your class yet.</div>'}
     </div>
+      <div data-tab-panel="attendance" class="card card-pad hidden"><div class="spinner"></div></div>
+    <div data-tab-panel="schedule" class="card card-pad hidden"><div class="spinner"></div></div>
+    <div data-tab-panel="news" class="card card-pad hidden"><div class="spinner"></div></div>
   `;
+  wireResults(document.querySelector('[data-tab-panel="results"]'));
+  const lazy = { attendance: () => attendanceHtml(s.id), schedule: async () => scheduleHtml(await api.get('/timetable/my')), news: () => announcementsHtml() };
+  const loaded = new Set();
 
   document.querySelectorAll('.tab-btn').forEach((btn) => btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('is-active'));
     btn.classList.add('is-active');
     document.querySelectorAll('[data-tab-panel]').forEach((p) => p.classList.add('hidden'));
-    document.querySelector(`[data-tab-panel="${btn.dataset.tab}"]`).classList.remove('hidden');
+    const panel = document.querySelector(`[data-tab-panel="${btn.dataset.tab}"]`); panel.classList.remove('hidden');
+    if (lazy[btn.dataset.tab] && !loaded.has(btn.dataset.tab)) { loaded.add(btn.dataset.tab); lazy[btn.dataset.tab]().then((h) => { panel.innerHTML = h; }).catch(() => { panel.innerHTML = '<div class="empty-state">Could not load this section.</div>'; }); }
   }));
 
   // Support the sidebar's #fees / #results anchor links jumping straight to a tab.

@@ -1,0 +1,12 @@
+# Free alternative to the Firebase function: GitHub pings the API every 10 minutes.
+# Add a repository variable API_HEALTH_URL (Settings > Secrets and variables > Actions > Variables).
+name: keepalive
+on:
+  schedule: [{ cron: '*/10 * * * *' }]
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: ${{ vars.API_HEALTH_URL != '' }}
+    steps:
+      - run: curl -fsS --max-time 60 "${{ vars.API_HEALTH_URL }}" || true

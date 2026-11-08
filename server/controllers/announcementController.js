@@ -2,6 +2,7 @@ const { asyncHandler } = require('../middleware/error-handler');
 const announcements = require('../services/announcementService');
 
 module.exports = {
+  listMine: asyncHandler(async (req, res) => res.json(await announcements.listForRole(req.user.role))),
   listPublic: asyncHandler(async (req, res) => res.json(await announcements.listPublicAnnouncements())),
   listAll: asyncHandler(async (req, res) => res.json(await announcements.listAllAnnouncements())),
   create: asyncHandler(async (req, res) => res.status(201).json(await announcements.createAnnouncement(req.body, req.user))),

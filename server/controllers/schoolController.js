@@ -78,9 +78,15 @@ const resultsController = {
   myClasses: asyncHandler(async (req, res) => res.json(await results.myClasses(req.user.linkedEmployeeId))),
   mySubjects: asyncHandler(async (req, res) => res.json(await results.mySubjects(req.user.linkedEmployeeId, req.query.classId))),
   /** Auto-populated roster for a class+subject+term — the teacher never types a student name. */
-  sheet: asyncHandler(async (req, res) => res.json(await results.getResultsSheet(req.query))),
+  sheet: asyncHandler(async (req, res) => { await results.assertTeacherClass(req.user, req.query.classId); res.json(await results.getResultsSheet(req.query)); }),
+  pending: asyncHandler(async (req, res) => res.json(await results.listPending(req.query))),
+  review: asyncHandler(async (req, res) => res.json(await results.reviewResults(req.body, req.user))),
   save: asyncHandler(async (req, res) => res.status(201).json(await results.saveResult(req.body, req.user))),
-  forStudent: asyncHandler(async (req, res) => res.json(await results.resultsForStudent(req.params.studentId))),
+  forStudent: asyncHandler(async (req, res) => {
+    await require('../utils/access').assertCanAccessStudent(req.user, req.params.studentId);
+    const onlyApproved = ['STUDENT', 'PARENT'].includes(req.user.role);
+    res.json(await results.resultsForStudent(req.params.studentId, { onlyApproved }));
+  }),
 };
 
 module.exports = { academicsController, employeeController, attendanceController, payrollController, dashboardController, resultsController };
