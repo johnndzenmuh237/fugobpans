@@ -59,14 +59,14 @@ async function assignSubjectTeacher(classId, { subjectId, teacherId }, actor) {
 }
 
 // ---- Fee structures ----
-async function createFeeStructure({ academicSessionId, classId, registrationFee = 0, schoolFee = 0, otherFees = 0, installmentAllowed = true }, actor) {
+async function createFeeStructure({ academicSessionId, classId, registrationFee = 0, schoolFee = 0, examFee = 0, otherFees = 0, installmentAllowed = true }, actor) {
   if (!academicSessionId || !classId) throw new AppError('academicSessionId and classId are required.');
   const { rows } = await query(
-    `INSERT INTO fee_structures (academic_session_id, class_id, registration_fee, school_fee, other_fees, installment_allowed)
-     VALUES ($1,$2,$3,$4,$5,$6)
-     ON CONFLICT (academic_session_id, class_id) DO UPDATE SET registration_fee=$3, school_fee=$4, other_fees=$5, installment_allowed=$6
+    `INSERT INTO fee_structures (academic_session_id, class_id, registration_fee, school_fee, other_fees, installment_allowed, exam_fee)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)
+     ON CONFLICT (academic_session_id, class_id) DO UPDATE SET registration_fee=$3, school_fee=$4, other_fees=$5, installment_allowed=$6, exam_fee=$7
      RETURNING *`,
-    [academicSessionId, classId, registrationFee, schoolFee, otherFees, installmentAllowed]
+    [academicSessionId, classId, registrationFee, schoolFee, otherFees, installmentAllowed, examFee]
   );
   await writeAudit({ user: actor, action: 'SET_FEE_STRUCTURE', entity: 'fee_structures', entityId: rows[0].id, after: rows[0] });
   return rows[0];

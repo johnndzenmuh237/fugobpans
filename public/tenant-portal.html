@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tenant Dashboard</title>
+<meta name="description" content="Announcements for all tenants. Enter your tracking code to see your rent, receipts and contract." />
+<link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div id="siteHeader"></div>
+<section class="hero" style="padding:54px 0 60px"><div class="container"><span class="eyebrow">Tenant dashboard</span><h1 style="max-width:20ch">Notices for everyone. Your rent, just for you.</h1>
+<p>General announcements from management are below. To see your own rent, receipts, contract and notices for your house category, enter your tracking code.</p></div></section>
+<section class="section" style="padding-top:34px"><div class="container">
+  <div id="termsBanner"></div>
+  <div id="gate" class="two-col" style="align-items:start">
+    <div id="announcements"><div class="section-title" style="margin-top:0"><h2>📢 Announcements</h2></div><div id="board"><div class="spinner"></div></div></div>
+    <form id="codeForm" class="card card-pad" style="position:sticky;top:90px"><h3 style="margin-top:0">Open my account</h3>
+      <p class="text-muted" style="margin-top:0;font-size:.9rem">Your tracking code was given to you by management when you were registered. Only you can see your own data.</p>
+      <div class="field"><label for="code">Tracking code</label><input id="code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. K7M2QX9P" style="font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase" required /></div>
+      <div class="field"><label for="last4">Last 4 digits of your phone number</label><input id="last4" name="last4" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="1234" required /><div class="text-muted" style="font-size:.76rem;margin-top:4px">The phone number you gave when you registered. This stops anyone else opening your account with a guessed code.</div></div>
+      <div id="codeError" class="notice-card k-URGENT hidden" role="alert"></div>
+      <button class="btn btn-primary btn-block" id="codeBtn" type="submit">Load my data</button>
+      <p class="text-muted" style="font-size:.78rem;margin:12px 0 0">Lost your code? Contact management and we will give you a new one.</p></form>
+  </div>
+  <div id="dash" class="hidden"></div>
+</div></section>
+<div id="siteFooter"></div>
+<script type="module" src="/assets/js/public-layout.js"></script>
+<script type="module" src="/assets/js/pages-public/tenant-portal.js"></script>
+</body>
+</html>

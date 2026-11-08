@@ -14,10 +14,11 @@ async function requireAuth(req, res, next) {
     if (!token) return res.status(401).json({ error: 'Not logged in.' });
 
     const decoded = verifyToken(token);
-    const { rows } = await query('SELECT id, name, email, role, status, linked_employee_id, linked_student_id FROM users WHERE id = $1', [decoded.uid]);
+    const { rows } = await query('SELECT id, name, email, role, status, linked_employee_id, linked_student_id, permissions, job_title, department_id, must_change_password FROM users WHERE id = $1', [decoded.uid]);
     const user = rows[0];
     if (!user) return res.status(401).json({ error: 'Account no longer exists.' });
     if (user.status === 'SUSPENDED') return res.status(403).json({ error: 'This account has been suspended.' });
+    if (user.status === 'DEACTIVATED') return res.status(403).json({ error: 'This account has been deactivated. Contact the School Owner.' });
 
     req.user = {
       uid: user.id,
@@ -26,6 +27,10 @@ async function requireAuth(req, res, next) {
       role: user.role,
       linkedEmployeeId: user.linked_employee_id,
       linkedStudentId: user.linked_student_id,
+      permissions: user.permissions || {},
+      mustChangePassword: !!user.must_change_password,
+      jobTitle: user.job_title,
+      departmentId: user.department_id,
     };
     next();
   } catch (err) {

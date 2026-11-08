@@ -1,17 +1,15 @@
 const { query } = require('../config/db');
 const { asyncHandler, AppError } = require('../middleware/error-handler');
 
+const notifications = require('../services/notificationService');
+
 const listNotifications = asyncHandler(async (req, res) => {
-  const { rows } = await query(
-    'SELECT * FROM notifications WHERE to_role = $1 OR to_user_id = $2 ORDER BY created_at DESC LIMIT 50',
-    [req.user.role, req.user.uid]
-  );
-  res.json(rows);
+  const items = await notifications.listForUser(req.user, { limit: req.query.limit, unreadOnly: req.query.unread === '1' });
+  res.json(items.map((n) => ({ ...n, read: n.is_read })));
 });
-const markNotificationRead = asyncHandler(async (req, res) => {
-  await query('UPDATE notifications SET read = true WHERE id = $1', [req.params.id]);
-  res.json({ ok: true });
-});
+const unreadCount = asyncHandler(async (req, res) => res.json({ count: await notifications.unreadCount(req.user) }));
+const markNotificationRead = asyncHandler(async (req, res) => { await notifications.markRead(req.user, req.params.id); res.json({ ok: true }); });
+const markAllNotificationsRead = asyncHandler(async (req, res) => { await notifications.markAllRead(req.user); res.json({ ok: true }); });
 
 const listAuditLogs = asyncHandler(async (req, res) => {
   const { rows } = await query('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 500');
@@ -41,4 +39,4 @@ const updateSettings = asyncHandler(async (req, res) => {
   res.json({ ok: true });
 });
 
-module.exports = { listNotifications, markNotificationRead, listAuditLogs, getSettings, updateSettings };
+module.exports = { listNotifications, unreadCount, markNotificationRead, markAllNotificationsRead, listAuditLogs, getSettings, updateSettings };

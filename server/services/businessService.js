@@ -36,13 +36,21 @@ async function listExpenses({ from, to, categoryId } = {}) {
 }
 
 async function createExpense({ categoryId, description, amount, expenseDate, paymentMethod, vendor, notes }, actor) {
+  const { isManagementLevel } = require('../middleware/roles');
+  const approval = isManagementLevel(actor) ? 'APPROVED' : 'PENDING'; // accountant entries wait for management approval
   if (!categoryId || !amount) throw new AppError('categoryId and amount are required.');
   const reference = await nextId('EXP');
   const { rows } = await query(
-    `INSERT INTO expenses (reference, category_id, description, amount, expense_date, payment_method, vendor, recorded_by, notes)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-    [reference, categoryId, description || null, amount, expenseDate || new Date().toISOString().slice(0, 10), paymentMethod || 'CASH', vendor || null, actor.uid, notes || null]
+    `INSERT INTO expenses (reference, category_id, description, amount, expense_date, payment_method, vendor, recorded_by, notes, approval_status, approved_by, approved_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::varchar, CASE WHEN $10::varchar = 'APPROVED' THEN $8::uuid END, CASE WHEN $10::varchar = 'APPROVED' THEN now() END) RETURNING *`,
+    [reference, categoryId, description || null, amount, expenseDate || new Date().toISOString().slice(0, 10), paymentMethod || 'CASH', vendor || null, actor.uid, notes || null, approval]
   );
+  if (approval === 'PENDING') {
+    await require('./notificationService').notify({ toRole: 'MANAGER', sender: actor, department: 'Finance', type: 'WARNING', title: 'Expense awaiting approval',
+      message: `${actor.name} recorded an expense of ${Number(amount).toLocaleString()} FCFA (${description || reference}). Approve or reject it.`, link: '/admin/approvals.html', entity: 'expenses', entityId: rows[0].id });
+  } else {
+    await require('./notificationService').notify({ toRole: 'ACCOUNTANT', sender: actor, department: 'Finance', title: 'Expense recorded', message: `${actor.name} recorded an expense of ${Number(amount).toLocaleString()} FCFA (${description || reference}).`, link: '/admin/expenses.html', entity: 'expenses', entityId: rows[0].id, alsoOwner: true });
+  }
   await writeAudit({ user: actor, action: 'CREATE_EXPENSE', entity: 'expenses', entityId: rows[0].id, after: rows[0] });
   return rows[0];
 }
@@ -51,7 +59,7 @@ async function createExpense({ categoryId, description, amount, expenseDate, pay
 async function listBudgets(period) {
   let sql = `
     SELECT b.*, ec.name AS category_name,
-      COALESCE((SELECT SUM(e.amount) FROM expenses e WHERE e.category_id = b.category_id AND to_char(e.expense_date,'YYYY-MM') = b.period), 0) AS spent
+      COALESCE((SELECT SUM(e.amount) FROM expenses e WHERE e.approval_status = 'APPROVED' AND e.category_id = b.category_id AND to_char(e.expense_date,'YYYY-MM') = b.period), 0) AS spent
     FROM budgets b JOIN expense_categories ec ON ec.id = b.category_id`;
   const params = [];
   if (period) { params.push(period); sql += ` WHERE b.period = $1`; }
@@ -299,7 +307,7 @@ async function incomeStatement({ from, to }) {
     query(`SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE status = 'SUCCESSFUL' AND paid_at::date BETWEEN $1 AND $2`, [from, to]),
     query(`SELECT COALESCE(SUM(amount_paid),0) AS total FROM sales WHERE sale_date BETWEEN $1 AND $2`, [from, to]),
     query(`SELECT ec.name AS category, COALESCE(SUM(e.amount),0) AS total FROM expenses e JOIN expense_categories ec ON ec.id = e.category_id
-           WHERE e.expense_date BETWEEN $1 AND $2 GROUP BY ec.name ORDER BY total DESC`, [from, to]),
+           WHERE e.approval_status = 'APPROVED' AND e.expense_date BETWEEN $1 AND $2 GROUP BY ec.name ORDER BY total DESC`, [from, to]),
     query(`SELECT COALESCE(SUM(pi.amount_paid),0) AS total FROM payroll_items pi WHERE pi.paid_at::date BETWEEN $1 AND $2`, [from, to]),
     query(`SELECT COALESCE(SUM(amount),0) AS total FROM debt_payments WHERE paid_at::date BETWEEN $1 AND $2`, [from, to]),
   ]);

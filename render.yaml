@@ -1,0 +1,20 @@
+# Render Blueprint — API server. The database lives on Neon, the website on Firebase Hosting.
+services:
+  - type: web
+    name: fugobpans-api
+    runtime: node
+    plan: starter            # "free" sleeps after ~15 min idle; use "starter" for a service that never sleeps
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run upgrade-db && npm start   # applies new migrations safely on each deploy, then starts
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL          # Neon connection string (see docs/DEPLOYMENT-render-neon-firebase.md)
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true        # Render generates a long random secret
+      - key: CLIENT_ORIGIN         # your Firebase site(s), comma separated, no trailing slash
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
