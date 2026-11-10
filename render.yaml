@@ -18,3 +18,36 @@ services:
         sync: false
       - key: DATABASE_SSL
         value: "true"
+
+  # Daily fee reminders (07:00 Douala = 06:00 UTC). Does nothing until the Owner switches reminders on AND a provider is configured.
+  - type: cron
+    name: fugobpans-reminders
+    runtime: node
+    schedule: "0 6 * * *"
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run send-reminders
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_SMS_FROM
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        sync: false
+      - key: WHATSAPP_CLOUD_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_TEMPLATE_NAME
+        sync: false
+      - key: SMS_GATEWAY_URL
+        sync: false
+      - key: SMS_GATEWAY_TOKEN
+        sync: false

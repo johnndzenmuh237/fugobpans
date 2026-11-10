@@ -2,6 +2,7 @@ const { query, withTransaction } = require('../config/db');
 const { AppError } = require('../middleware/error-handler');
 const { computeInvoiceStatus } = require('../utils/calculations');
 const { nextId } = require('../utils/idGenerator');
+const { addHistory } = require('../utils/paymentHistory');
 
 /** Creates an invoice for a student from a fee structure. */
 async function createInvoiceForStudent(client, { studentId, feeStructureId }) {
@@ -13,6 +14,18 @@ async function createInvoiceForStudent(client, { studentId, feeStructureId }) {
      VALUES ($1,$2,$3,$4,0,'UNPAID') RETURNING *`,
     [invoiceNumber, studentId, feeStructureId, rows[0].total]
   );
+  // Freeze a copy of the fee's instalment schedule on this invoice, so later template edits never rewrite this family's agreement.
+  // (Savepoint: if migration 9 isn't applied yet, invoice creation behaves exactly as before.)
+  await client.query('SAVEPOINT inv_sched');
+  try {
+    await client.query(
+      `INSERT INTO invoice_installments (invoice_id, name, amount, due_date, sort_order)
+       SELECT $1, name, amount, due_date, sort_order FROM fee_installments WHERE fee_structure_id = $2`, [inv[0].id, feeStructureId]);
+    await client.query('RELEASE SAVEPOINT inv_sched');
+  } catch (e) {
+    if (e.code !== '42P01') throw e;
+    await client.query('ROLLBACK TO SAVEPOINT inv_sched');
+  }
   return inv[0];
 }
 
@@ -24,7 +37,7 @@ async function createInvoiceForStudent(client, { studentId, feeStructureId }) {
  * a UNIQUE constraint, so a duplicate webhook delivery or double office
  * entry is caught here rather than double-crediting the account (spec §87).
  */
-async function applyPayment({ invoiceId, amount, method, transactionReference, recordedBy = null, notes = null }) {
+async function applyPayment({ invoiceId, amount, method, transactionReference, recordedBy = null, notes = null, actor = null, ip = null }) {
   return withTransaction(async (client) => {
     const existing = await client.query('SELECT * FROM payments WHERE transaction_reference = $1', [transactionReference]);
     if (existing.rows.length) {
@@ -46,6 +59,11 @@ async function applyPayment({ invoiceId, amount, method, transactionReference, r
     );
 
     await client.query('UPDATE invoices SET amount_paid = $1, status = $2, updated_at = now() WHERE id = $3', [newPaid, newStatus, invoiceId]);
+    // Permanent record of WHO put this money on the ledger (staff member, or the payment gateway when actor is null).
+    await addHistory(client, {
+      paymentId: payRes.rows[0].id, event: actor ? 'RECORDED' : 'GATEWAY_CONFIRMED', toStatus: 'SUCCESSFUL', amount, receiptNumber,
+      actor, ip, note: notes || (actor ? 'Recorded by staff' : 'Confirmed by the payment gateway'), tolerateMissingTable: true,
+    });
 
     return { alreadyApplied: false, payment: payRes.rows[0], invoice: { ...invoice, amount_paid: newPaid, status: newStatus } };
   });

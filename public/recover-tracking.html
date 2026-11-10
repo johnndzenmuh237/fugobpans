@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Recover your tracking number | FUGOBPANS</title>
+<meta name="description" content="Recover your child's tracking number using the phone number registered with the school." />
+<link rel="canonical" href="https://fugobpans.example/recover-tracking.html" />
+<link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/responsive.css" />
+<script src="/assets/js/config.js"></script>
+</head>
+<body>
+<div id="siteHeader"></div>
+<section class="section">
+  <div class="container" style="max-width:560px;">
+    <div class="section-head"><h1>Recover your tracking number</h1>
+      <p>Enter the phone number you gave the school when registering. We will send a 6-digit code to that number by SMS or WhatsApp.</p></div>
+    <form id="reqForm" class="card card-pad" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
+      <div class="field" style="flex:1;min-width:220px;"><label for="phone">Registered phone number</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="e.g. 677 12 34 56" /></div>
+      <button class="btn btn-accent" type="submit" id="reqBtn">Send me a code</button>
+    </form>
+    <form id="verForm" class="card card-pad hidden" style="margin-top:14px;display:none;gap:10px;flex-wrap:wrap;align-items:end;">
+      <div class="field" style="flex:1;min-width:200px;"><label for="code">6-digit code</label><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="123456" /></div>
+      <button class="btn btn-accent" type="submit">Show my tracking number</button>
+    </form>
+    <div id="msg" style="margin-top:16px;" role="status" aria-live="polite"></div>
+    <p class="text-muted" style="font-size:.86rem;margin-top:18px;">Never share the code with anyone. If you no longer have access to that phone number, please visit or call the school office with a parent/guardian ID.</p>
+    <p><a href="/track-student.html">&larr; Back to Student Dashboard</a></p>
+  </div>
+</section>
+<div id="siteFooter"></div>
+<script type="module" src="/assets/js/public-layout.js"></script>
+<script src="/assets/js/recover-tracking.js"></script>
+</body>
+</html>

@@ -24,10 +24,11 @@ async function main() {
     fields: [
       { name: 'invoiceId', label: 'Invoice ID', required: true, full: true },
       { name: 'amount', label: 'Amount (FCFA)', type: 'number', required: true },
-      { name: 'method', label: 'Method', type: 'select', required: true, options: [{ value: 'OFFICE_CASH', label: 'Cash' }, { value: 'OFFICE_OTHER', label: 'Other' }] },
+      { name: 'method', label: 'Method', type: 'select', required: true, options: [{ value: 'OFFICE_CASH', label: 'Cash' }, { value: 'MTN_MOMO', label: 'MTN Mobile Money (seen on the school account)' }, { value: 'ORANGE_MONEY', label: 'Orange Money (seen on the school account)' }, { value: 'OFFICE_OTHER', label: 'Other' }] },
+      { name: 'transactionReference', label: 'Mobile Money transaction ID (required for MTN / Orange — lets the owner reconcile it)', full: true },
       { name: 'notes', label: 'Notes', type: 'textarea' },
     ],
-    onSubmit: async (v) => { await api.post('/payments/office', { ...v, amount: Number(v.amount) }); toast('Payment recorded.', 'success'); load(); },
+    onSubmit: async (v) => { if (['MTN_MOMO', 'ORANGE_MONEY'].includes(v.method) && !v.transactionReference) throw new Error('Enter the Mobile Money transaction ID.'); await api.post('/payments/office', { ...v, transactionReference: v.transactionReference || undefined, amount: Number(v.amount) }); toast('Payment recorded.', 'success'); load(); },
   }));
 }
 main();

@@ -13,7 +13,8 @@
     "apply-migration": "node scripts/apply-migration.js",
     "create-manager": "node scripts/create-manager.js",
     "absence-sweep": "node scripts/run-absence-sweep.js",
-    "test": "jest"
+    "test": "jest",
+    "send-reminders": "node scripts/send-reminders.js"
   },
   "dependencies": {
     "axios": "^1.7.7",

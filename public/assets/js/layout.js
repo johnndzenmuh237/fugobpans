@@ -21,6 +21,10 @@ const NAV = {
     { label: 'Finance', links: [
       { key: 'payments', href: '/admin/payments.html', icon: '&#128179;', label: 'Payments' },
       { key: 'outstanding', href: '/admin/outstanding-fees.html', icon: '&#9888;', label: 'Outstanding Fees' },
+      { key: 'pending-payments', href: '/admin/pending-payments.html', icon: '&#9203;', label: 'Verify Payments' },
+      { key: 'payment-history', href: '/admin/payment-history.html', icon: '&#128203;', label: 'Verification History' },
+      { key: 'fee-reminders', href: '/admin/fee-reminders.html', icon: '&#128276;', label: 'Fee Reminders' },
+      { key: 'reconciliation', href: '/admin/reconciliation.html', icon: '&#9878;', label: 'Reconciliation' },
     ]},
     { label: 'Teachers & Workers', links: [
       { key: 'employees', href: '/admin/employees.html', icon: '&#128188;', label: 'All Workers' },
@@ -52,6 +56,10 @@ const NAV = {
       { key: 'payments', href: '/accountant/payments.html', icon: '&#128179;', label: 'Payments' },
       { key: 'outstanding', href: '/accountant/outstanding-fees.html', icon: '&#9888;', label: 'Outstanding Fees' },
       { key: 'receipts', href: '/accountant/receipts.html', icon: '&#128196;', label: 'Receipts' },
+      { key: 'pending-payments', href: '/admin/pending-payments.html', icon: '&#9203;', label: 'Verify Payments' },
+      { key: 'payment-history', href: '/admin/payment-history.html', icon: '&#128203;', label: 'Verification History' },
+      { key: 'fee-reminders', href: '/admin/fee-reminders.html', icon: '&#128276;', label: 'Fee Reminders' },
+      { key: 'reconciliation', href: '/admin/reconciliation.html', icon: '&#9878;', label: 'Reconciliation' },
       { key: 'messages', href: '/messages.html', icon: '&#9993;', label: 'Messages' },
     ]},
     { label: 'Business Management', links: [
@@ -128,12 +136,36 @@ const LINK_PERMISSION = {
 };
 const TOP_LEVEL_ONLY = ['settings'];
 
+// Menu visibility for the newer fine-grained permissions. Mirrors server/middleware/roles.js hasPermission();
+// cosmetic only — the server checks every request regardless of what the menu shows.
+const FINE_LINKS = {
+  'pending-payments': { keys: ['approve_payments'], parents: ['finance'], acct: true },
+  'payment-history': { keys: ['approve_payments', 'view_financial_reports'], parents: ['finance', 'reports'], acct: true },
+  'fee-reminders': { keys: ['manage_reminders'], parents: ['finance'], acct: false },
+  reconciliation: { keys: ['reconcile_payments'], parents: [], acct: false, explicitOnly: true },
+};
+function canSeeFine(profile, link) {
+  if (profile.role === 'OWNER') return true;
+  const def = FINE_LINKS[link]; if (!def) return true;
+  const perms = profile.permissions || {};
+  if (def.keys.some((k) => perms[k] === true)) return true;
+  if (def.keys.every((k) => perms[k] === false)) return false;
+  if (def.explicitOnly) return false;
+  if (profile.role === 'MANAGER') return true;
+  if (profile.role === 'ACCOUNTANT') return def.acct;
+  return def.parents.some((p) => perms[p] === true);
+}
+const withFine = (groups, profile) => groups.map((g) => ({ ...g, links: g.links.filter((l) => canSeeFine(profile, l.key)) })).filter((g) => g.links.length);
+
 function navFor(profile) {
+  return withFine(navForBase(profile), profile);
+}
+function navForBase(profile) {
   if (profile.role === 'OWNER') return NAV.OWNER;
   if (profile.role === 'MANAGER') return NAV.MANAGER;
   if (MANAGEMENT_ROLES.includes(profile.role)) {
     const perms = profile.permissions || {};
-    return NAV.MANAGER.map((g) => ({ ...g, links: g.links.filter((l) => !TOP_LEVEL_ONLY.includes(l.key) && (!LINK_PERMISSION[l.key] || perms[LINK_PERMISSION[l.key]] === true)) })).filter((g) => g.links.length);
+    return NAV.MANAGER.map((g) => ({ ...g, links: g.links.filter((l) => !TOP_LEVEL_ONLY.includes(l.key) && (!LINK_PERMISSION[l.key] || perms[LINK_PERMISSION[l.key]] === true || FINE_LINKS[l.key])) })).filter((g) => g.links.length);
   }
   return NAV[profile.role] || [];
 }

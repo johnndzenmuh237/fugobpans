@@ -8,4 +8,7 @@ const lookupLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHea
 // Login: slows password guessing from one IP (per-account lockout is in authController).
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
-module.exports = { apiLimiter, publicWriteLimiter, webhookLimiter, lookupLimiter, authLimiter };
+// One-time-code endpoints (recovery / record verification): strict per IP; per-phone limits are enforced in the database as well.
+const otpLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 12, standardHeaders: true, legacyHeaders: false });
+
+module.exports = { otpLimiter, apiLimiter, publicWriteLimiter, webhookLimiter, lookupLimiter, authLimiter };

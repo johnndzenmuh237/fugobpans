@@ -29,13 +29,19 @@ const ownerRoutes = require('./routes/owner.routes');
 const studentsExtraRoutes = require('./routes/students-extra.routes');
 const platformRoutes = require('./routes/platform.routes');
 const approvalsRoutes = require('./routes/approvals.routes');
+const verificationRoutes = require('./routes/verification.routes');
+const publicPaymentsRoutes = require('./routes/public-payments.routes');
+const recoveryRoutes = require('./routes/recovery.routes');
+const remindersRoutes = require('./routes/reminders.routes');
+const reconciliationRoutes = require('./routes/reconciliation.routes');
 
 const app = express();
 // Render (and most hosts) sit behind a proxy. Without this every visitor looks like one IP,
 // so the rate limiters would throttle the whole school together.
 app.set('trust proxy', 1);
 
-app.use(helmet());
+// Same defaults as before, plus blob: images so staff can view an uploaded payment screenshot when the site is served from here.
+app.use(helmet({ contentSecurityPolicy: { useDefaults: true, directives: { 'img-src': ["'self'", 'data:', 'blob:'] } } }));
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 const allowedOrigins = (process.env.CLIENT_ORIGIN || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -43,6 +49,10 @@ app.use(cors({
   origin: allowedOrigins.length ? allowedOrigins : true,
   credentials: true, // needed so the httpOnly session cookie is sent cross-origin
 }));
+// Routes that carry files (payment screenshots, operator statements) need more than the 2 MB default, so they get
+// their own JSON limit and are mounted BEFORE the global parser. They keep their own rate limiting / authentication.
+app.use('/api/public-payments', apiLimiter, express.json({ limit: '6mb' }), publicPaymentsRoutes);
+app.use('/api/reconciliation', apiLimiter, cookieParser(), express.json({ limit: '9mb' }), reconciliationRoutes);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -65,7 +75,10 @@ app.use('/api/academics', academicsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/payments/manual', verificationRoutes); // verification queue, evidence, decisions, history (before /api/payments)
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/recovery', recoveryRoutes); // public: tracking-number recovery by one-time code
+app.use('/api/reminders', remindersRoutes); // fee reminders, messaging settings, instalment schedules
 app.use('/api/results', resultsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/assignments', assignmentsRoutes);

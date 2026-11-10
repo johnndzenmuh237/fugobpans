@@ -5,6 +5,11 @@ import { modal, showSecret, escapeHtml, fmtCell, toast, formatDateTime } from '.
 const root = document.getElementById('pageRoot');
 const ROLES = { PRINCIPAL: 'Principal', VICE_PRINCIPAL: 'Vice Principal', ADMINISTRATOR: 'School Administrator', ACADEMIC_ADMIN: 'Academic Administrator', MANAGER: 'Manager (full management access)' };
 const PERMS = { students: 'Students & parents', teachers: 'Teachers, attendance & payroll staff', academics: 'Classes, subjects, timetable & result approval', finance: 'Fees, payments, expenses & payroll', announcements: 'Announcements', reports: 'Reports & audit log', registrations: 'New registrations' };
+// Fine-grained powers (the server enforces each one on every request). Ticking or unticking is always explicit.
+const FINE = { register_students: 'Register students manually', approve_payments: 'Verify / reject payments', issue_receipts: 'Record payments & issue receipts', modify_fees: 'Create or change fees & instalments', view_financial_reports: 'View financial reports', manage_reminders: 'Manage fee reminders & messaging', reconcile_payments: 'Reconcile with MTN / Orange statements' };
+const FINE_DEFAULT = { register_students: ['registrations', 'students'], approve_payments: ['finance'], issue_receipts: ['finance'], modify_fees: ['finance'], view_financial_reports: ['finance', 'reports'], manage_reminders: ['finance'], reconcile_payments: [] };
+// What an existing account can effectively do today, so editing it never changes anything by surprise.
+const fineEffective = (a, k) => (typeof a?.permissions?.[k] === 'boolean' ? a.permissions[k] : a?.role === 'MANAGER' ? k !== 'reconcile_payments' : FINE_DEFAULT[k].some((p) => a?.permissions?.[p] === true));
 const PRESETS = {
   PRINCIPAL: ['students', 'teachers', 'academics', 'announcements', 'reports', 'registrations'],
   VICE_PRINCIPAL: ['students', 'academics', 'announcements', 'registrations'],
@@ -15,7 +20,8 @@ const PRESETS = {
 let departments = [];
 
 const permBoxes = (selected) => `<div class="perm-grid">${Object.entries(PERMS).map(([k, l]) => `<label><input type="checkbox" name="perm_${k}" ${selected.includes(k) ? 'checked' : ''} /> ${escapeHtml(l)}</label>`).join('')}</div>`;
-const readPerms = (form) => Object.fromEntries(Object.keys(PERMS).map((k) => [k, form.querySelector(`[name=perm_${k}]`).checked]));
+const fineBoxes = (a, role) => `<div class="perm-grid">${Object.entries(FINE).map(([k, l]) => `<label><input type="checkbox" name="fine_${k}" ${(a ? fineEffective(a, k) : (PRESETS[role] || []).some((p) => FINE_DEFAULT[k].includes(p)) && k !== 'reconcile_payments') ? 'checked' : ''} /> ${escapeHtml(l)}</label>`).join('')}</div>`;
+const readPerms = (form) => ({ ...Object.fromEntries(Object.keys(PERMS).map((k) => [k, form.querySelector(`[name=perm_${k}]`).checked])), ...Object.fromEntries(Object.keys(FINE).map((k) => [k, !!form.querySelector(`[name=fine_${k}]`)?.checked])) });
 const deptSelect = (sel) => `<select name="departmentId"><option value="">No department</option>${departments.map((d) => `<option value="${d.id}" ${d.id === sel ? 'selected' : ''}>${escapeHtml(d.name)}</option>`).join('')}</select>`;
 
 function accountForm({ title, account = null, replaceOf = null }) {
@@ -33,11 +39,11 @@ function accountForm({ title, account = null, replaceOf = null }) {
       ${isEdit ? '' : '<div class="field form-row-full"><label>Initial password (optional)</label><input name="initialPassword" type="text" minlength="8" placeholder="Leave empty to generate a secure temporary password" /></div>'}
       ${isReplace ? '<div class="field form-row-full"><label>Reason for replacement</label><input name="reason" placeholder="e.g. Resigned, contract ended" /></div>' : ''}
     </div>
-    ${isReplace ? '' : `<h4 style="margin-top:12px;">What this person may manage</h4><p class="text-muted" style="font-size:.82rem;">Defaults follow the position; adjust freely. The server enforces these on every request.</p>${permBoxes(account ? Object.keys(PERMS).filter((k) => account.permissions?.[k]) : PRESETS[role])}`}
+    ${isReplace ? '' : `<h4 style="margin-top:12px;">What this person may manage</h4><p class="text-muted" style="font-size:.82rem;">Defaults follow the position; adjust freely. The server enforces these on every request.</p>${permBoxes(account ? Object.keys(PERMS).filter((k) => account.permissions?.[k]) : PRESETS[role])}<h4 style="margin-top:14px;">Detailed powers</h4><p class="text-muted" style="font-size:.82rem;">Decide exactly who can register students, approve payments, issue receipts, change fees, see financial reports, send reminders and reconcile with MTN / Orange. Untick any one to take it away.</p>${fineBoxes(account, role)}`}
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;"><button type="button" class="btn btn-outline" data-close>Cancel</button><button class="btn btn-primary" type="submit">${isReplace ? 'Replace' : isEdit ? 'Save changes' : 'Create account'}</button></div></form>`, { wide: true });
   const form = m.el.querySelector('#acctForm');
   m.el.querySelector('[data-close].btn-outline').addEventListener('click', m.close);
-  form.querySelector('[name=role]')?.addEventListener('change', (e) => { if (!isEdit) Object.keys(PERMS).forEach((k) => { form.querySelector(`[name=perm_${k}]`).checked = PRESETS[e.target.value].includes(k); }); });
+  form.querySelector('[name=role]')?.addEventListener('change', (e) => { if (!isEdit) Object.keys(PERMS).forEach((k) => { form.querySelector(`[name=perm_${k}]`).checked = PRESETS[e.target.value].includes(k); }); Object.keys(FINE).forEach((k) => { const b = form.querySelector(`[name=fine_${k}]`); if (b) b.checked = k !== 'reconcile_payments' && PRESETS[e.target.value].some((p) => FINE_DEFAULT[k].includes(p)); }); });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(form).entries());

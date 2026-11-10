@@ -3,6 +3,7 @@ const { AppError } = require('../middleware/error-handler');
 const { nextId } = require('../utils/idGenerator');
 const { notify } = require('./notificationService');
 const { createInvoiceForStudent } = require('./invoiceService');
+const { generateUniqueTrackingCode } = require('../utils/trackingCode');
 
 /**
  * PUBLIC — a visitor registers a student for a specific class. No login,
@@ -47,17 +48,18 @@ async function submitRegistration(body) {
 
     // Immediately create the student record — no manual re-entry (spec §21).
     const studentCode = await nextId('STU');
+    const trackingCode = await generateUniqueTrackingCode(client, 'students');
     const studRes = await client.query(
       `INSERT INTO students (
-         student_code, registration_id, class_id, academic_session_id, first_name, middle_name, last_name,
+         tracking_code, student_code, registration_id, class_id, academic_session_id, first_name, middle_name, last_name,
          date_of_birth, gender, guardian_name, guardian_relationship, guardian_phone, guardian_whatsapp,
          guardian_email, guardian_address, status
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'ACTIVE')
+       ) VALUES ($16,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'ACTIVE')
        RETURNING *`,
       [
         studentCode, registration.id, body.classId, session.id, body.firstName, body.middleName || null, body.lastName,
         body.dateOfBirth, body.gender, body.guardianName, body.guardianRelationship || null, body.guardianPhone,
-        body.guardianWhatsapp || null, body.guardianEmail || null, body.guardianAddress || null,
+        body.guardianWhatsapp || null, body.guardianEmail || null, body.guardianAddress || null, trackingCode,
       ]
     );
     const student = studRes.rows[0];

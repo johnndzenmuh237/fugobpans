@@ -67,7 +67,11 @@ const webhook = asyncHandler(async (req, res) => {
 const recordOfficePayment = asyncHandler(async (req, res) => {
   const { invoiceId, amount, method, notes } = req.body;
   if (!invoiceId || !amount) throw new AppError('invoiceId and amount are required.');
-  const transactionReference = `OFFICE-${invoiceId}-${Date.now()}`;
+  // Mobile Money payments recorded by staff should carry the REAL transaction ID so they can be reconciled against the
+  // operator's statement; cash keeps the generated reference exactly as before.
+  const realRef = String(req.body.transactionReference || '').trim().toUpperCase();
+  if (realRef && !/^[A-Z0-9][A-Z0-9._-]{5,39}$/.test(realRef)) throw new AppError('The transaction ID must be 6–40 letters/numbers.');
+  const transactionReference = realRef || `OFFICE-${invoiceId}-${Date.now()}`;
 
   const result = await applyPayment({
     invoiceId, amount, method: method || 'OFFICE_CASH', transactionReference, recordedBy: req.user.uid, notes,

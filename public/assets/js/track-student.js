@@ -26,19 +26,84 @@ async function loadAnnouncements() {
 }
 loadAnnouncements();
 
-document.getElementById('lookupForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+const tokenKey = (code) => `portalToken:${code}`;
+const getToken = (code) => sessionStorage.getItem(tokenKey(code)) || '';
+
+async function doLookup(code) {
   const mount = document.getElementById('resultMount');
   mount.innerHTML = '<div class="spinner" style="margin:30px auto;"></div>';
   try {
-    const res = await fetch(`${API}/lookup/student/${encodeURIComponent(code)}`);
+    const res = await fetch(`${API}/lookup/student/${encodeURIComponent(code)}`, { headers: { 'x-portal-token': getToken(code) } });
     const data = await res.json();
+    if (res.status === 401 && data.otpRequired) { sessionStorage.removeItem(tokenKey(code)); return askForCode(mount, code); }
     if (!res.ok) throw new Error(data.error || 'Not found.');
     render(mount, data);
+    attachPayment(mount, code, data);
   } catch (err) {
     mount.innerHTML = `<div class="card card-pad" style="text-align:center;color:var(--danger-600,#c62828);">${escapeHtml(err.message || 'Could not find a record for that code.')}</div>`;
   }
+}
+
+async function postJson(path, body) {
+  const res = await fetch(`${API}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+  return data;
+}
+
+/** The school has switched on identity verification: a code is sent to the guardian's registered phone first. */
+async function askForCode(mount, code) {
+  let info = '';
+  try { info = (await postJson('/lookup/student-otp/request', { trackingCode: code })).message; } catch (e) { info = e.message; }
+  mount.innerHTML = `<form id="otpForm" class="card card-pad" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
+    <p class="form-row-full" style="flex-basis:100%;margin:0;">${escapeHtml(info)}</p>
+    <div class="field" style="flex:1;min-width:180px;"><label>6-digit code</label><input id="otpInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="123456" /></div>
+    <button class="btn btn-accent" type="submit">Verify</button></form><div id="otpMsg" style="color:#c62828;margin-top:8px;"></div>`;
+  document.getElementById('otpForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const r = await postJson('/lookup/student-otp/verify', { trackingCode: code, code: document.getElementById('otpInput').value.trim() });
+      sessionStorage.setItem(tokenKey(code), r.accessToken);
+      doLookup(code);
+    } catch (err) { document.getElementById('otpMsg').textContent = err.message; }
+  });
+}
+
+const readFile = (f) => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error('Could not read the image.')); r.readAsDataURL(f); });
+
+/** Parent pays by MTN/Orange outside the site, then sends proof here. It becomes PENDING — never confirmed until the school checks. */
+function attachPayment(mount, code, data) {
+  if (!(data.fees.balance > 0)) return;
+  const box = document.createElement('div');
+  box.className = 'card card-pad';
+  box.style.marginTop = '18px';
+  box.innerHTML = `<h3 style="margin-top:0;">Paid by Mobile Money? Send your proof</h3>
+    <p class="text-muted" style="font-size:.88rem;">After you pay the school's MTN Mobile Money or Orange Money number, enter the details and attach the confirmation screenshot. <strong>Your payment is only confirmed once the school sees the money on its account</strong> — until then it shows as "waiting for verification".</p>
+    <form id="payForm"><div class="form-grid">
+      <div class="field"><label>Network</label><select name="provider" required><option value="">Select…</option><option value="MTN_MOMO">MTN Mobile Money</option><option value="ORANGE_MONEY">Orange Money</option></select></div>
+      <div class="field"><label>Amount you sent (FCFA)</label><input name="amount" type="number" min="1" max="${Math.round(data.fees.balance)}" required /></div>
+      <div class="field"><label>Transaction ID</label><input name="transactionId" required minlength="6" maxlength="40" autocomplete="off" /></div>
+      <div class="field"><label>Phone you paid from</label><input name="payerPhone" type="tel" required /></div>
+      <div class="field form-row-full"><label>Screenshot of the confirmation (JPG/PNG, max 4 MB) — it must show date, time, transaction ID and amount</label><input name="evidence" type="file" accept="image/jpeg,image/png,image/webp" required /></div>
+    </div><button class="btn btn-accent" type="submit">Submit payment proof</button><div id="payMsg" style="margin-top:10px;" role="status" aria-live="polite"></div></form>`;
+  mount.appendChild(box);
+  box.querySelector('#payForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target, msg = box.querySelector('#payMsg'), btn = f.querySelector('button');
+    const file = f.evidence.files[0];
+    if (!file) { msg.textContent = 'Please attach the screenshot.'; return; }
+    if (file.size > 4 * 1024 * 1024) { msg.style.color = '#c62828'; msg.textContent = 'The screenshot is larger than 4 MB. Choose a smaller image.'; return; }
+    btn.disabled = true; msg.style.color = ''; msg.textContent = 'Sending…';
+    try {
+      const r = await postJson('/public-payments/submit', { trackingCode: code, provider: f.provider.value, amount: Number(f.amount.value), transactionId: f.transactionId.value.trim(), payerPhone: f.payerPhone.value.trim(), evidence: await readFile(file), accessToken: getToken(code) });
+      msg.style.color = '#1a7f37'; msg.textContent = r.message; f.reset();
+    } catch (err) { msg.style.color = '#c62828'; msg.textContent = err.message; } finally { btn.disabled = false; }
+  });
+}
+
+document.getElementById('lookupForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  doLookup(document.getElementById('codeInput').value.trim().toUpperCase());
 });
 
 function render(mount, data) {
@@ -62,7 +127,7 @@ function render(mount, data) {
       ${fees.invoices.map((inv) => `
         <div style="border-top:1px solid var(--border,#e5e7eb);padding-top:10px;margin-top:10px;font-size:.88rem;">
           <strong>${escapeHtml(inv.invoice_number)}</strong> — ${money(inv.total_amount)} total, ${money(inv.amount_paid)} paid
-          <span class="text-muted">(${inv.status})</span>
+          <span class="text-muted">(${inv.status})</span>${(inv.payments || []).filter((p) => p.status === 'PENDING').map((p) => `<div style="font-size:.82rem;color:#b45309;">Waiting for verification: ${money(p.amount)} (ID ${escapeHtml(p.transaction_reference)})</div>`).join('')}
         </div>`).join('')}
     </div>
 

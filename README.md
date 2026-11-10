@@ -7,3 +7,6 @@ Converted from the old school ERP. Keeps the proven foundation (login, audit log
 See `docs/deployment.md` to run it. Staff pages live in `public/admin/`, one JS module each in `public/assets/js/pages/`; backend in `server/` (`services/` hold the business logic).
 
 **Honest limits** — "AI analytics" is rule-based (every insight states its numbers); it does not call an LLM. WhatsApp reminders open a pre-written chat (no automatic SMS/WhatsApp/email sending yet). Photos are URLs, not uploads. Reports export CSV (opens in Excel) and print to PDF.
+
+
+**Payment controls (migration 9)** — verification history, SMS/WhatsApp fee reminders, tracking-number recovery, MoMo/Orange reconciliation and granular manager permissions: see `docs/new-features-payment-controls.md`.

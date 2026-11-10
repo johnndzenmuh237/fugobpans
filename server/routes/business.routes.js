@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/businessController');
 const { requireAuth } = require('../middleware/auth');
-const { ROLES, FINANCE_ROLES, allowRoles, needs } = require('../middleware/roles');
+const { ROLES, FINANCE_ROLES, allowRoles, needs, requirePermission } = require('../middleware/roles');
 
 // Everything in this module is financial: management posts need the Owner-granted "finance" permission.
 router.use(requireAuth, needs('finance'));
@@ -36,10 +36,10 @@ router.post('/debts/:debtId/pay', requireAuth, allowRoles(...FINANCE_ROLES), ctr
 router.patch('/salary-debts/:itemId/pay', requireAuth, allowRoles(ROLES.MANAGER), ctrl.paySalaryDebt);
 
 // Reports
-router.get('/income-statement', requireAuth, allowRoles(...FINANCE_ROLES), ctrl.incomeStatement);
-router.get('/reports/monthly', requireAuth, allowRoles(...FINANCE_ROLES), ctrl.monthlyReport);
-router.get('/reports/yearly', requireAuth, allowRoles(...FINANCE_ROLES), ctrl.yearlyReport);
-router.get('/reports/custom', requireAuth, allowRoles(...FINANCE_ROLES), ctrl.customPeriodReport);
-router.get('/reports/summary', requireAuth, allowRoles(...FINANCE_ROLES), ctrl.reportsCenterSummary);
+router.get('/income-statement', requireAuth, allowRoles(...FINANCE_ROLES), requirePermission('view_financial_reports'), ctrl.incomeStatement);
+router.get('/reports/monthly', requireAuth, allowRoles(...FINANCE_ROLES), requirePermission('view_financial_reports'), ctrl.monthlyReport);
+router.get('/reports/yearly', requireAuth, allowRoles(...FINANCE_ROLES), requirePermission('view_financial_reports'), ctrl.yearlyReport);
+router.get('/reports/custom', requireAuth, allowRoles(...FINANCE_ROLES), requirePermission('view_financial_reports'), ctrl.customPeriodReport);
+router.get('/reports/summary', requireAuth, allowRoles(...FINANCE_ROLES), requirePermission('view_financial_reports'), ctrl.reportsCenterSummary);
 
 module.exports = router;

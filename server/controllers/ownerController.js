@@ -3,15 +3,24 @@ const { query, pool } = require('../config/db');
 const { asyncHandler, AppError } = require('../middleware/error-handler');
 const { hashPassword } = require('../services/authService');
 const { writeAudit } = require('../utils/auditLogger');
-const { ROLES, MANAGEMENT_ROLES } = require('../middleware/roles');
+const { ROLES, MANAGEMENT_ROLES, FINE_PERMISSIONS } = require('../middleware/roles');
 
 // Posts the Owner can create. MANAGER is the original role, kept for existing schools.
 const ASSIGNABLE = [...MANAGEMENT_ROLES, ROLES.MANAGER];
 const PERMISSION_KEYS = ['students', 'teachers', 'academics', 'finance', 'announcements', 'reports', 'registrations'];
 
-function cleanPermissions(input = {}) {
+/**
+ * Older keys behave as before (anything not ticked is false). The newer fine-grained keys are only written when the
+ * request actually carries them, otherwise the account's existing value is kept — so an older/cached screen can never
+ * silently switch someone's new permissions off (or on).
+ */
+function cleanPermissions(input = {}, existing = {}) {
   const out = {};
   for (const k of PERMISSION_KEYS) out[k] = input[k] === true;
+  for (const k of Object.keys(FINE_PERMISSIONS)) {
+    if (typeof input[k] === 'boolean') out[k] = input[k];
+    else if (typeof existing[k] === 'boolean') out[k] = existing[k];
+  }
   return out;
 }
 function tempPassword() {
@@ -73,7 +82,7 @@ const update = asyncHandler(async (req, res) => {
   const t = await getTarget(req.params.id);
   const { name, phone, jobTitle, departmentId, permissions, role } = req.body;
   if (role && !ASSIGNABLE.includes(role)) throw new AppError('Invalid role.');
-  const perms = permissions ? cleanPermissions(permissions) : t.permissions;
+  const perms = permissions ? cleanPermissions(permissions, t.permissions || {}) : t.permissions;
   const { rows } = await query(
     `UPDATE users SET name = COALESCE($2,name), phone = COALESCE($3,phone), job_title = COALESCE($4,job_title),
        department_id = COALESCE($5,department_id), permissions = $6, role = COALESCE($7::user_role, role), updated_at = now()
