@@ -23,7 +23,7 @@
     <header class="app-topbar">
       <div class="left"><button class="drawer-toggle" data-drawer-target="#appSidebar" aria-label="Open menu"></button><strong>Student Notes</strong></div>
       <div style="display:flex;align-items:center;gap:14px;position:relative;">
-        <button id="notifBell" class="btn btn-ghost btn-sm" aria-label="Notifications">&#128276;</button>
+        <button id="notifBell" class="btn btn-ghost btn-sm" aria-label="Notifications"><i data-icon="bell"></i></button>
         <div id="notifPanel" class="notif-panel hidden"></div>
         <div style="display:flex;align-items:center;gap:8px;"><span class="avatar" id="userAvatar">--</span><span id="userName" class="text-muted" style="font-size:.85rem;"></span></div>
         <a href="#" id="logoutBtn" class="btn btn-outline btn-sm">Log out</a>
@@ -36,5 +36,6 @@
   </div>
 </div>
 <script type="module" src="/assets/js/student-notes.js"></script>
+<script type="module" src="/assets/js/icons.js"></script>
 </body>
 </html>

@@ -84,8 +84,8 @@ async function pollForSuccess(providerReference, statusEl, close) {
     try {
       const res = await fetch(`${API}/payments/verify/${providerReference}?invoiceId=${lastInvoice.id}`);
       const result = await res.json();
-      if (result.status === 'SUCCESSFUL') { statusEl.textContent = '✅ Payment confirmed!'; setTimeout(close, 1200); return; }
-      if (result.status === 'FAILED') { statusEl.textContent = '❌ Payment failed. Please try again.'; return; }
+      if (result.status === 'SUCCESSFUL') { statusEl.textContent = ' Payment confirmed!'; setTimeout(close, 1200); return; }
+      if (result.status === 'FAILED') { statusEl.textContent = ' Payment failed. Please try again.'; return; }
     } catch { /* keep polling */ }
   }
   statusEl.textContent = 'Still waiting — you can close this and pay at the office if needed.';

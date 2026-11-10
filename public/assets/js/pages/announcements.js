@@ -26,7 +26,7 @@ function form() {
 async function load() {
   rows = await api.get('/announcements');
   renderTable(qs('#tableMount'), rows, [
-    { label: 'Announcement', render: (a) => `<strong>${a.pinned ? '📌 ' : ''}${escapeHtml(a.title)}</strong><div class="text-muted" style="font-size:.8rem;max-width:380px">${escapeHtml(a.body.slice(0, 120))}${a.body.length > 120 ? '…' : ''}</div>` },
+    { label: 'Announcement', render: (a) => `<strong>${a.pinned ? ' ' : ''}${escapeHtml(a.title)}</strong><div class="text-muted" style="font-size:.8rem;max-width:380px">${escapeHtml(a.body.slice(0, 120))}${a.body.length > 120 ? '…' : ''}</div>` },
     { label: 'Audience', render: (a) => (a.audience === 'ALL' ? 'Everyone' : a.audience === 'CATEGORY' ? `Category: ${escapeHtml(a.category_name)}` : `Property: ${escapeHtml(a.property_name)}`) },
     { label: 'Reaches', render: (a) => `${a.recipients} tenant(s)` }, { label: 'Type', render: (a) => statusBadge(a.kind) },
     { label: 'Posted', render: (a) => `${formatDate(a.created_at)}<div class="text-muted" style="font-size:.76rem">${escapeHtml(a.posted_by_name || '')}</div>` }, { label: 'Status', render: (a) => statusBadge(a.status) },

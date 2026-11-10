@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { renderTable } from '../crud-table.js';
 import { qs, escapeHtml, formatCurrency, pctBar } from '../utils.js';
 
-const ICON = { good: '✅', info: 'ℹ️', warning: '⚠️', critical: '🚨' };
+const ICON = { good: '', info: '', warning: '', critical: '' };
 async function main() {
   await initPortalLayout({ activeKey: 'analytics', perms: ['analytics'], title: 'AI Analytics', subtitle: 'Every insight explains the numbers it is based on, so you can check the reasoning.' });
   qs('#pageRoot').innerHTML = '<h2 style="margin-top:0">Insights & suggested actions</h2><div id="ins"><div class="spinner"></div></div><div class="section-title"><h2>Property performance</h2></div><div id="prop"></div><div class="section-title"><h2>Category performance</h2></div><div id="cat"></div><div class="section-title"><h2>Revenue trend (12 months)</h2></div><div id="trend"></div>';

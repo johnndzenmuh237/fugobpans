@@ -18,7 +18,7 @@ async function load() {
     mount.innerHTML = items.map((a) => `
       <div class="card card-pad" style="margin-bottom:16px;${a.pinned ? 'border-left:4px solid var(--accent, #6366f1);' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;">
-          <h3 style="margin:0;">${a.pinned ? '📌 ' : ''}${escapeHtml(a.title)}</h3>
+          <h3 style="margin:0;">${a.pinned ? '<i data-icon="pin"></i> ' : ''}${escapeHtml(a.title)}</h3>
           <span class="text-muted" style="font-size:.78rem;white-space:nowrap;">${formatDate(a.created_at)}</span>
         </div>
         <p style="white-space:pre-wrap;margin:10px 0 0;">${escapeHtml(a.body)}</p>

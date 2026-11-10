@@ -10,7 +10,7 @@ const inp = (name, label, o = {}) => `<div class="field ${o.full ? 'form-row-ful
 function success(r) {
   qs('#pageRoot').innerHTML = `
     <div class="card card-pad" style="max-width:640px;margin:0 auto">
-      <h2 style="margin-top:0">✅ ${escapeHtml(r.tenant.name)} is registered</h2>
+      <h2 style="margin-top:0"> ${escapeHtml(r.tenant.name)} is registered</h2>
       <dl class="kv"><dt>Tenant ID</dt><dd class="mono">${escapeHtml(r.tenant.tenantCode)}</dd><dt>Contract</dt><dd class="mono">${escapeHtml(r.contract.contractNo)}</dd>
       <dt>Contract period</dt><dd>${String(r.contract.startDate).slice(0, 10)} → ${String(r.contract.endDate).slice(0, 10)}</dd>
       ${r.receipts.map((x) => `<dt>${x.type === 'DEPOSIT' ? 'Deposit receipt' : 'Rent receipt'}</dt><dd><a class="mono" href="/admin/receipt.html?id=${x.id}">${escapeHtml(x.receiptNumber)}</a> · ${formatCurrency(x.amount)}</dd>`).join('')}</dl>

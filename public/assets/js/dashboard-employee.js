@@ -9,8 +9,8 @@ async function main() {
   qs('#pageRoot').innerHTML = `
     <div class="welcome-banner"><h1>Welcome, ${profile.name}!</h1><p style="color:rgba(255,255,255,.85);margin:0;">${me.position_name || ''}</p></div>
     <div class="quick-actions">
-      <a class="quick-action" href="/employee/attendance.html"><span class="icon">📅</span><span class="label">Mark Attendance</span></a>
-      <a class="quick-action" href="/employee/profile.html"><span class="icon">👤</span><span class="label">My Profile</span></a>
+      <a class="quick-action" href="/employee/attendance.html"><span class="icon"><i data-icon="calendar"></i></span><span class="label">Mark Attendance</span></a>
+      <a class="quick-action" href="/employee/profile.html"><span class="icon"><i data-icon="user"></i></span><span class="label">My Profile</span></a>
     </div>`;
 }
 main();

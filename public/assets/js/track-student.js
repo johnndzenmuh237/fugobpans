@@ -15,7 +15,7 @@ async function loadAnnouncements() {
     mount.innerHTML = top.map((a) => `
       <div class="card card-pad" style="margin-bottom:10px;${a.pinned ? 'border-left:4px solid var(--accent, #6366f1);' : ''}">
         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <strong>${a.pinned ? '📌 ' : ''}${escapeHtml(a.title)}</strong>
+          <strong>${a.pinned ? '<i data-icon="pin"></i> ' : ''}${escapeHtml(a.title)}</strong>
           <span class="text-muted" style="font-size:.76rem;">${formatDate(a.created_at)}</span>
         </div>
         <p style="white-space:pre-wrap;margin:8px 0 0;">${escapeHtml(a.body)}</p>
@@ -57,7 +57,7 @@ function render(mount, data) {
         <div class="item"><div class="text-muted">Balance</div><div class="amt">${money(fees.balance)}</div></div>
       </div>
       <p style="text-align:center;font-weight:700;color:${fees.complete ? 'var(--success-600,#1a7f37)' : 'var(--amber-600,#b45309)'};">
-        ${fees.complete ? '✅ Fees fully paid' : fees.totalPaid > 0 ? '⏳ Partially paid — balance remaining' : '⚠️ No payment received yet'}
+        ${fees.complete ? '<i data-icon="circle-check"></i> Fees fully paid' : fees.totalPaid > 0 ? '<i data-icon="hourglass"></i> Partially paid — balance remaining' : '<i data-icon="triangle-alert"></i> No payment received yet'}
       </p>
       ${fees.invoices.map((inv) => `
         <div style="border-top:1px solid var(--border,#e5e7eb);padding-top:10px;margin-top:10px;font-size:.88rem;">

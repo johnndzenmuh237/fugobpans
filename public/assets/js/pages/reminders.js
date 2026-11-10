@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { renderTable } from '../crud-table.js';
 import { qs, escapeHtml, formatCurrency, formatDate } from '../utils.js';
 
-const groups = [['dueSoon', '🟡 Rent due soon', 'DUE_SOON'], ['dueToday', '🟠 Rent due today', 'DUE_TODAY'], ['overdue', '🔴 Overdue', 'OVERDUE'], ['seriousArrears', '🔴 Serious arrears (3+ months)', 'SERIOUS_ARREARS']];
+const groups = [['dueSoon', ' Rent due soon', 'DUE_SOON'], ['dueToday', ' Rent due today', 'DUE_TODAY'], ['overdue', ' Overdue', 'OVERDUE'], ['seriousArrears', ' Serious arrears (3+ months)', 'SERIOUS_ARREARS']];
 function waLink(x, label) {
   const phone = String(x.phone || '').replace(/\D/g, '');
   const msg = x.amount_owing > 0 ? `Hello ${x.name}, this is a reminder that ${formatCurrency(x.amount_owing)} rent is outstanding for ${x.property_name}, House ${x.house_no} Unit ${x.unit_no}. Please pay as soon as possible. Thank you.` : `Hello ${x.name}, your rent of ${formatCurrency(x.monthly_rent)} for ${x.property_name}, House ${x.house_no} Unit ${x.unit_no} is due on ${formatDate(x.next_payment_date)}. Thank you.`;

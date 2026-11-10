@@ -10,6 +10,6 @@ const get = (p) => fetch(`${API}${p}`).then((r) => r.json());
   } catch { document.getElementById('featured').innerHTML = '<p class="text-muted">Listings are unavailable right now.</p>'; }
   try {
     const notices = await get('/announcements/public');
-    document.getElementById('notices').innerHTML = notices.slice(0, 4).map((a) => `<div class="notice-card k-${a.kind}"><strong>${a.pinned ? '📌 ' : ''}${escapeHtml(a.title)}</strong><div style="margin:4px 0">${escapeHtml(a.body.slice(0, 160))}${a.body.length > 160 ? '…' : ''}</div><div class="text-muted" style="font-size:.76rem">${formatDate(a.created_at)}</div></div>`).join('') || '<p class="text-muted">No announcements right now.</p>';
+    document.getElementById('notices').innerHTML = notices.slice(0, 4).map((a) => `<div class="notice-card k-${a.kind}"><strong>${a.pinned ? ' ' : ''}${escapeHtml(a.title)}</strong><div style="margin:4px 0">${escapeHtml(a.body.slice(0, 160))}${a.body.length > 160 ? '…' : ''}</div><div class="text-muted" style="font-size:.76rem">${formatDate(a.created_at)}</div></div>`).join('') || '<p class="text-muted">No announcements right now.</p>';
   } catch { /* ignore */ }
 })();

@@ -6,7 +6,7 @@ import { qs, escapeHtml, formatCurrency, formatDateTime, METHOD_LABEL, toast } f
 let rows = [];
 async function load() {
   rows = await api.get('/payments/pending');
-  qs('#pageRoot').innerHTML = rows.length ? '<div id="tableMount"></div>' : '<div class="empty-state card">🎉 Nothing is waiting for confirmation.</div>';
+  qs('#pageRoot').innerHTML = rows.length ? '<div id="tableMount"></div>' : '<div class="empty-state card"> Nothing is waiting for confirmation.</div>';
   if (!rows.length) return;
   renderTable(qs('#tableMount'), rows, [
     { label: 'Submitted', render: (p) => formatDateTime(p.created_at) },

@@ -19,7 +19,7 @@ const post = (path, body) => api.post(path, body, { silent: true, portalToken: t
 
 function noticeHtml(a, showAudience) {
   const tag = showAudience && a.audience !== 'ALL' ? `<span class="badge badge-info" style="margin-left:8px">${a.audience === 'CATEGORY' ? `For ${escapeHtml(a.category_name)} tenants` : `For ${escapeHtml(a.property_name)}`}</span>` : '';
-  return `<div class="notice-card k-${a.kind}"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>${a.pinned ? '📌 ' : ''}${escapeHtml(a.title)}${tag}</strong>${a.kind === 'URGENT' ? '<span class="badge badge-danger">Urgent</span>' : ''}</div><div style="margin:6px 0;white-space:pre-wrap">${escapeHtml(a.body)}</div><div class="text-muted" style="font-size:.76rem">${formatDate(a.created_at)}</div></div>`;
+  return `<div class="notice-card k-${a.kind}"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>${a.pinned ? ' ' : ''}${escapeHtml(a.title)}${tag}</strong>${a.kind === 'URGENT' ? '<span class="badge badge-danger">Urgent</span>' : ''}</div><div style="margin:6px 0;white-space:pre-wrap">${escapeHtml(a.body)}</div><div class="text-muted" style="font-size:.76rem">${formatDate(a.created_at)}</div></div>`;
 }
 
 async function loadGeneralBoard() {
@@ -101,7 +101,7 @@ function renderTerms() {
 function render() {
   $('#gate').classList.add('hidden'); $('#dash').classList.remove('hidden');
   renderTerms();
-  $('#dash').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px"><div><h2 style="margin:0">Hello, ${escapeHtml(me.profile.name.split(' ')[0])} 👋</h2><div class="text-muted">${escapeHtml(me.rental.propertyName)} · House ${escapeHtml(me.rental.houseNo)} · Unit ${escapeHtml(me.rental.unitNo)}</div></div><button class="btn btn-outline btn-sm" id="closeBtn">Close my account</button></div>
+  $('#dash').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px"><div><h2 style="margin:0">Hello, ${escapeHtml(me.profile.name.split(' ')[0])} </h2><div class="text-muted">${escapeHtml(me.rental.propertyName)} · House ${escapeHtml(me.rental.houseNo)} · Unit ${escapeHtml(me.rental.unitNo)}</div></div><button class="btn btn-outline btn-sm" id="closeBtn">Close my account</button></div>
     <div class="chip-row" style="margin-top:16px" id="tabs">${TABS.map(([k, l]) => `<button class="chip ${k === tab ? 'is-active' : ''}" data-tab="${k}">${l}${k === 'payments' && me.pendingCount ? ` (${me.pendingCount} pending)` : ''}</button>`).join('')}</div><div id="panel"></div>`;
   $('#closeBtn').addEventListener('click', () => { showGate(); toast('Your account was closed on this device.'); });
   $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; render(); } });
@@ -124,7 +124,7 @@ async function onPanelClick(e) {
 async function onPay(e) {
   e.preventDefault(); const btn = $('#payBtn'); const msg = $('#payMsg'); btn.disabled = true;
   const v = Object.fromEntries(new FormData(e.target).entries()); v.amount = Number(v.amount); if (!v.paidAt) delete v.paidAt; else v.paidAt = new Date(v.paidAt).toISOString();
-  try { await post('/portal/payments', v); msg.className = 'notice-card'; msg.textContent = '✅ Received. Your payment is pending confirmation — management will check it and your balance and receipt will update.'; e.target.reset(); await loadDashboard(false); tab = 'payments'; render(); toast('Payment submitted for confirmation.', 'success'); }
+  try { await post('/portal/payments', v); msg.className = 'notice-card'; msg.textContent = ' Received. Your payment is pending confirmation — management will check it and your balance and receipt will update.'; e.target.reset(); await loadDashboard(false); tab = 'payments'; render(); toast('Payment submitted for confirmation.', 'success'); }
   catch (err) { msg.className = 'notice-card k-URGENT'; msg.textContent = err.message; btn.disabled = false; }
 }
 async function onMaintenance(e) {

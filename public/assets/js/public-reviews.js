@@ -3,7 +3,7 @@ const API = window.APP_CONFIG.API_BASE_URL;
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-function stars(n) { return '★'.repeat(n) + '☆'.repeat(5 - n); }
+function stars(n) { return '<i data-icon="star-filled" class="icon-star"></i>'.repeat(n) + '<i data-icon="star" class="icon-star"></i>'.repeat(5 - n); }
 
 async function loadReviews() {
   const summaryMount = document.getElementById('summaryMount');

@@ -26,7 +26,7 @@ async function main() {
               const fee = feeByClass[c.id];
               return `
                 <div class="feature-card">
-                  <div class="icon-badge">🏫</div>
+                  <div class="icon-badge"><i data-icon="school"></i></div>
                   <h3>${c.name}</h3>
                   ${fee ? `
                     <p><strong>Registration Fee:</strong> ${Number(fee.registration_fee).toLocaleString()} FCFA</p>

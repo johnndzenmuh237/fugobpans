@@ -28,7 +28,7 @@ async function load() {
         <dt>Emergency</dt><dd>${escapeHtml([t.emergency_contact_name, t.emergency_contact_phone].filter(Boolean).join(' · ') || '—')}</dd><dt>Moved in</dt><dd>${formatDate(t.move_in_date)}</dd>
         <dt>Category</dt><dd>${escapeHtml(t.category_name || '—')}</dd><dt>Terms accepted</dt><dd>${data.termsAccepted ? `v${data.termsAccepted.version} on ${formatDate(data.termsAccepted.accepted_at)}${data.currentTermsVersion && data.termsAccepted.version < data.currentTermsVersion ? ' (newer version pending)' : ''}` : (data.currentTermsVersion ? '<span style="color:var(--danger-600)">Not yet</span>' : '—')}</dd>
         <dt>Tracking code</dt><dd><span class="mono">${escapeHtml(t.tracking_code)}</span> ${can('tenants') ? '<button class="btn btn-sm btn-ghost" id="regenBtn">New code</button>' : ''}</dd></dl>
-        ${t.pending_payments ? `<p style="margin:12px 0 0"><a href="/admin/pending-payments.html">⚠ ${t.pending_payments} payment(s) awaiting confirmation</a></p>` : ''}</div>
+        ${t.pending_payments ? `<p style="margin:12px 0 0"><a href="/admin/pending-payments.html"> ${t.pending_payments} payment(s) awaiting confirmation</a></p>` : ''}</div>
     </div>
     <div class="section-title"><h2>Payment history</h2></div><div id="payMount"></div>
     <div class="section-title"><h2>Contracts</h2></div><div id="conMount"></div>

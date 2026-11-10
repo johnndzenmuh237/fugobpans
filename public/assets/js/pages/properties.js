@@ -47,7 +47,7 @@ function cardHtml(p) {
     <div class="prop-body">
       <div class="text-muted mono" style="font-size:.72rem">${escapeHtml(p.property_code)} · ${KIND_LABEL[p.kind]}${p.category_name ? ` · ${escapeHtml(p.category_name)}` : ''}</div>
       <h3><a href="/admin/property-detail.html?id=${p.id}">${escapeHtml(p.name)}</a></h3>
-      <div class="prop-meta"><span>📍 ${escapeHtml(p.location || p.city || '—')}</span>${p.size_sqm ? `<span>${Number(p.size_sqm).toLocaleString()} m²</span>` : ''}<span>${PURPOSE_LABEL[p.purpose]}</span></div>
+      <div class="prop-meta"><span> ${escapeHtml(p.location || p.city || '—')}</span>${p.size_sqm ? `<span>${Number(p.size_sqm).toLocaleString()} m²</span>` : ''}<span>${PURPOSE_LABEL[p.purpose]}</span></div>
       ${p.asking_price ? `<div class="prop-price">${formatCurrency(p.asking_price)}</div>` : ''}
       ${p.total_units ? `<div class="prop-meta"><span>${p.occupied_units}/${p.total_units} units occupied</span><span>Expected ${formatCurrency(p.monthly_expected_rent)}/mo</span></div>` : ''}
       ${uncompleted ? `<div style="margin-top:4px"><div class="prop-meta"><span>${p.completion_percent}% built</span>${p.expected_completion_date ? `<span>Due ${formatDate(p.expected_completion_date)}</span>` : ''}</div>${pctBar(p.completion_percent)}</div>` : ''}
@@ -74,7 +74,7 @@ async function main() {
   if (profile.role === 'ADMIN') managers = (await api.get('/users')).filter((u) => u.role === 'MANAGER');
 
   qs('#pageRoot').innerHTML = `
-    <div class="chip-row" id="kindChips">${[['', 'All'], ['LAND', '🌿 Lands'], ['HOUSE', '🏠 Houses'], ['ESTATE', '🏘️ Estates'], ['COMMERCIAL', '🏢 Commercial']].map(([v, l]) => `<button class="chip ${state.kind === v ? 'is-active' : ''}" data-kind="${v}">${l}</button>`).join('')}</div>
+    <div class="chip-row" id="kindChips">${[['', 'All'], ['LAND', ' Lands'], ['HOUSE', ' Houses'], ['ESTATE', ' Estates'], ['COMMERCIAL', ' Commercial']].map(([v, l]) => `<button class="chip ${state.kind === v ? 'is-active' : ''}" data-kind="${v}">${l}</button>`).join('')}</div>
     <div class="filters-bar">
       <select id="fBuild"><option value="">Completed &amp; uncompleted</option><option value="COMPLETED">Completed only</option><option value="UNCOMPLETED">Uncompleted only</option></select>
       <select id="fPurpose"><option value="">Any purpose</option>${Object.entries(PURPOSE_LABEL).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>

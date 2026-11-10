@@ -2,7 +2,7 @@ import { initPortalLayout } from '../layout.js';
 import { api } from '../api.js';
 import { escapeHtml, formatDateTime, statusBadge, toast, qs } from '../utils.js';
 
-function stars(n) { return '★'.repeat(n) + '☆'.repeat(5 - n); }
+function stars(n) { return '<i data-icon="star-filled" class="icon-star"></i>'.repeat(n) + '<i data-icon="star" class="icon-star"></i>'.repeat(5 - n); }
 
 async function load() {
   const filter = qs('#statusFilter')?.value || '';

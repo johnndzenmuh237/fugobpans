@@ -23,7 +23,7 @@
     <header class="app-topbar">
       <div class="left"><button class="drawer-toggle" data-drawer-target="#appSidebar" aria-label="Open menu"></button><strong>Overview</strong></div>
       <div style="display:flex;align-items:center;gap:14px;position:relative;">
-        <button id="notifBell" class="btn btn-ghost btn-sm" aria-label="Notifications">&#128276;</button>
+        <button id="notifBell" class="btn btn-ghost btn-sm" aria-label="Notifications"><i data-icon="bell"></i></button>
         <div id="notifPanel" class="notif-panel hidden"></div>
         <div style="display:flex;align-items:center;gap:8px;"><span class="avatar" id="userAvatar">--</span><span id="userName" class="text-muted" style="font-size:.85rem;"></span></div>
         <a href="#" id="logoutBtn" class="btn btn-outline btn-sm">Log out</a>
@@ -34,16 +34,17 @@
       <div class="stat-grid" id="statGrid"></div>
       <h2 style="margin-top:32px;">Quick actions</h2>
       <div class="quick-actions">
-        <a class="quick-action" href="/admin/registrations.html"><span class="icon">📋</span><span class="label">View Registrations</span></a>
-        <a class="quick-action" href="/admin/payments.html"><span class="icon">💳</span><span class="label">Record Office Payment</span></a>
-        <a class="quick-action" href="/admin/employees.html"><span class="icon">👤</span><span class="label">Add Worker</span></a>
-        <a class="quick-action" href="/admin/attendance.html"><span class="icon">📅</span><span class="label">Mark Attendance</span></a>
-        <a class="quick-action" href="/admin/fee-structures.html"><span class="icon">💰</span><span class="label">Set Fees</span></a>
-        <a class="quick-action" href="/admin/payroll.html"><span class="icon">💵</span><span class="label">Generate Payroll</span></a>
+        <a class="quick-action" href="/admin/registrations.html"><span class="icon"><i data-icon="clipboard-list"></i></span><span class="label">View Registrations</span></a>
+        <a class="quick-action" href="/admin/payments.html"><span class="icon"><i data-icon="credit-card"></i></span><span class="label">Record Office Payment</span></a>
+        <a class="quick-action" href="/admin/employees.html"><span class="icon"><i data-icon="user"></i></span><span class="label">Add Worker</span></a>
+        <a class="quick-action" href="/admin/attendance.html"><span class="icon"><i data-icon="calendar"></i></span><span class="label">Mark Attendance</span></a>
+        <a class="quick-action" href="/admin/fee-structures.html"><span class="icon"><i data-icon="wallet"></i></span><span class="label">Set Fees</span></a>
+        <a class="quick-action" href="/admin/payroll.html"><span class="icon"><i data-icon="banknote"></i></span><span class="label">Generate Payroll</span></a>
       </div>
     </main>
   </div>
 </div>
 <script type="module" src="/assets/js/dashboard-manager.js"></script>
+<script type="module" src="/assets/js/icons.js"></script>
 </body>
 </html>

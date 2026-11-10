@@ -8,7 +8,7 @@ async function main() {
 
   qs('#pageRoot').innerHTML = classes.length ? `<div class="card-grid">${classes.map((c) => `
     <div class="feature-card">
-      <div class="icon-badge">🏫</div>
+      <div class="icon-badge"><i data-icon="school"></i></div>
       <h3>${escapeHtml(c.name)}</h3>
       <p class="text-muted">${escapeHtml(c.category_name)}</p>
       <p><strong>${c.student_count}</strong> student(s) registered</p>

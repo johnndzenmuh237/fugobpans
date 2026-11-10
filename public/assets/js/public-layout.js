@@ -25,9 +25,9 @@ function headerHtml() {
     <div class="ticker-bar" role="marquee" aria-label="School announcements">
       <div class="ticker-track">
         ${Array(2).fill(0).map(() => `
-          <span class="ticker-item">🎓 Admissions open for the new academic year — Register online in minutes</span>
-          <span class="ticker-item">📞 Call us: <a href="tel:${PHONE_TEL}">${PHONE_DISPLAY}</a></span>
-          <span class="ticker-item">🌍 A truly bilingual (English &amp; French) education, Pre-Nursery to Class 6</span>
+          <span class="ticker-item"><i data-icon="graduation-cap"></i> Admissions open for the new academic year — Register online in minutes</span>
+          <span class="ticker-item"><i data-icon="phone"></i> Call us: <a href="tel:${PHONE_TEL}">${PHONE_DISPLAY}</a></span>
+          <span class="ticker-item"><i data-icon="globe"></i> A truly bilingual (English &amp; French) education, Pre-Nursery to Class 6</span>
         `).join('')}
       </div>
     </div>
@@ -52,7 +52,7 @@ function headerHtml() {
         <a href="/register.html" class="btn btn-accent btn-block" data-track="cta_register_drawer">Register Now</a>
       </div>
     </div>
-    <a href="tel:${PHONE_TEL}" class="sticky-cta no-print" data-track="sticky_call_click" aria-label="Call the school">📞 Call ${PHONE_DISPLAY}</a>`;
+    <a href="tel:${PHONE_TEL}" class="sticky-cta no-print" data-track="sticky_call_click" aria-label="Call the school"><i data-icon="phone"></i> Call ${PHONE_DISPLAY}</a>`;
 }
 
 function footerHtml() {

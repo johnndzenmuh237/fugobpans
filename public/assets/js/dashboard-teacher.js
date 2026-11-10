@@ -14,10 +14,10 @@ async function main() {
       <div class="stat-card"><div class="label">Total Students</div><div class="value">${totalStudents}</div></div>
     </div>
     <div class="quick-actions">
-      <a class="quick-action" href="/teacher/results.html"><span class="icon">📝</span><span class="label">Upload Results</span></a>
-      <a class="quick-action" href="/teacher/students.html"><span class="icon">👥</span><span class="label">My Students</span></a>
-      <a class="quick-action" href="/teacher/attendance.html"><span class="icon">📅</span><span class="label">My Attendance</span></a>
-      <a class="quick-action" href="/teacher/profile.html"><span class="icon">👤</span><span class="label">My Profile</span></a>
+      <a class="quick-action" href="/teacher/results.html"><span class="icon"><i data-icon="file-pen"></i></span><span class="label">Upload Results</span></a>
+      <a class="quick-action" href="/teacher/students.html"><span class="icon"><i data-icon="users"></i></span><span class="label">My Students</span></a>
+      <a class="quick-action" href="/teacher/attendance.html"><span class="icon"><i data-icon="calendar"></i></span><span class="label">My Attendance</span></a>
+      <a class="quick-action" href="/teacher/profile.html"><span class="icon"><i data-icon="user"></i></span><span class="label">My Profile</span></a>
     </div>`;
 }
 main();

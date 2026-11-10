@@ -13,7 +13,7 @@ const id = new URLSearchParams(location.search).get('id');
       <div class="two-col" style="margin-top:14px"><div>
         <div class="prop-media k-${p.kind}" ${bg} >${p.photo_url ? '' : KIND_ICON[p.kind]}<div class="tags">${statusBadge(p.construction_status)}<span class="badge badge-info">${PURPOSE_LABEL[p.purpose]}</span></div></div>
         <h1 style="margin-top:18px">${escapeHtml(p.name)}</h1>
-        <div class="prop-meta" style="font-size:.95rem"><span>📍 ${escapeHtml([p.location, p.city].filter(Boolean).join(', ') || '—')}</span>${p.size_sqm ? `<span>${Number(p.size_sqm).toLocaleString()} m²</span>` : ''}<span>${KIND_LABEL[p.kind]}${p.category_name ? ` · ${escapeHtml(p.category_name)}` : ''}</span></div>
+        <div class="prop-meta" style="font-size:.95rem"><span> ${escapeHtml([p.location, p.city].filter(Boolean).join(', ') || '—')}</span>${p.size_sqm ? `<span>${Number(p.size_sqm).toLocaleString()} m²</span>` : ''}<span>${KIND_LABEL[p.kind]}${p.category_name ? ` · ${escapeHtml(p.category_name)}` : ''}</span></div>
         ${p.asking_price ? `<div class="prop-price" style="font-size:1.8rem;margin:10px 0">${formatCurrency(p.asking_price)}</div>` : ''}
         ${p.construction_status === 'UNCOMPLETED' ? `<div class="card card-pad" style="margin:14px 0"><strong>${p.completion_percent}% complete</strong>${p.expected_completion_date ? ` — expected ${formatDate(p.expected_completion_date)}` : ''}${pctBar(p.completion_percent)}</div>` : ''}
         ${p.description ? `<p style="white-space:pre-wrap">${escapeHtml(p.description)}</p>` : ''}

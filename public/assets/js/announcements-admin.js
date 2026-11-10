@@ -8,7 +8,7 @@ async function load() {
   renderTable(qs('#tableMount'), rows, [
     { key: 'title', label: 'Title' },
     { key: 'audience', label: 'Audience' },
-    { key: 'pinned', label: 'Pinned', render: (r) => (r.pinned ? '📌 Yes' : 'No') },
+    { key: 'pinned', label: 'Pinned', render: (r) => (r.pinned ? '<i data-icon="pin"></i> Yes' : 'No') },
     { key: 'status', label: 'Status', render: (r) => (r.status === 'ACTIVE' ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-neutral">Archived</span>') },
     { key: 'created_at', label: 'Posted', render: (r) => formatDateTime(r.created_at) },
     { key: 'actions', label: '', render: (r) => r.status === 'ACTIVE'

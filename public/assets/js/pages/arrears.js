@@ -13,7 +13,7 @@ async function load(propertyId) {
     { label: 'Unit', render: (r) => `${escapeHtml(r.property_name)}<div class="text-muted" style="font-size:.78rem">House ${escapeHtml(r.house_no)} · Unit ${escapeHtml(r.unit_no)}</div>` },
     { label: 'Months owing', render: (r) => r.months_owing }, { label: 'Amount owing', render: (r) => `<strong style="color:var(--danger-600)">${formatCurrency(r.amount_owing)}</strong>` },
     { label: 'Oldest unpaid due', render: (r) => formatDate(r.next_payment_date) }, { label: 'Days overdue', render: (r) => r.days_overdue }, { label: 'Status', render: (r) => statusBadge(r.rent_status) },
-  ], { pageSize: 20, emptyMessage: '🎉 No tenant owes rent right now.' });
+  ], { pageSize: 20, emptyMessage: ' No tenant owes rent right now.' });
 }
 async function main() {
   await initPortalLayout({ activeKey: 'arrears', perms: ['finance', 'payments', 'tenants'], title: 'Outstanding Rent', subtitle: 'Tenants who owe rent, biggest balance first — calculated live from the rent schedule.' });
