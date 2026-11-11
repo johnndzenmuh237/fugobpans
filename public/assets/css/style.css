@@ -129,3 +129,15 @@ tbody tr:hover { background:var(--slate-100); }
 .app-sidebar .ico { display: inline-flex; width: 22px; justify-content: center; }
 .app-sidebar .ico .icon { width: 18px; height: 18px; }
 i[data-icon] { display: inline-block; width: 1.15em; height: 1.15em; }
+
+/* ---- Install app ---- */
+.install-fab { position: fixed; left: 14px; bottom: 14px; z-index: 900; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 0; border-radius: 999px;
+  background: #12203d; color: #fff; font-weight: 600; font-size: .9rem; box-shadow: 0 6px 18px rgba(13,23,48,.35); cursor: pointer; }
+.install-fab:hover { background: #2743a8; }
+.install-btn { display: inline-flex; align-items: center; gap: 6px; }
+.install-banner { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 1000; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px;
+  background: #fff; color: #12203d; box-shadow: 0 10px 34px rgba(13,23,48,.35); max-width: 520px; margin: 0 auto; }
+.install-banner img { border-radius: 10px; flex: none; }
+.install-banner .ib-text { flex: 1; display: flex; flex-direction: column; font-size: .85rem; line-height: 1.25; }
+.install-banner .ib-text strong { font-size: .95rem; }
+@media (display-mode: standalone) { .install-fab, .install-banner, [data-install-app] { display: none !important; } }

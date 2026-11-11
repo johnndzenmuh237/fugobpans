@@ -36,6 +36,7 @@ function headerHtml() {
         <a href="/index.html" class="brand"><span class="mark">FG</span> FUGOBPANS</a>
         <nav class="site-nav" aria-label="Primary">${navItems()}</nav>
         <div class="site-header-actions">
+          <button type="button" data-install-app class="btn btn-ghost btn-sm install-btn"></button>
           <a href="/login.html" class="btn btn-outline btn-sm">Staff Login</a>
           <a href="/register.html" class="btn btn-accent btn-sm" data-track="cta_register_header">Register Now</a>
           <button class="drawer-toggle" id="siteDrawerToggle" aria-label="Open menu" aria-expanded="false"></button>
@@ -48,6 +49,7 @@ function headerHtml() {
       <div class="brand" style="margin-top:14px;"><span class="mark">FG</span> FUGOBPANS</div>
       <nav aria-label="Mobile">${navItems()}</nav>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:22px;">
+        <button type="button" data-install-app class="btn btn-primary btn-block install-btn"></button>
         <a href="/login.html" class="btn btn-outline btn-block">Staff Login</a>
         <a href="/register.html" class="btn btn-accent btn-block" data-track="cta_register_drawer">Register Now</a>
       </div>
