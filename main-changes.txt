@@ -1,0 +1,266 @@
+diff --git a/public/assets/js/pwa.js b/public/assets/js/pwa.js
+index 8c0faf5..ba1a63f 100644
+--- a/public/assets/js/pwa.js
++++ b/public/assets/js/pwa.js
+@@ -1,65 +1,45 @@
+-/* Install-as-app support: service worker + an "Install app" pop-up and buttons on every page. */
+-const HAS_ICONS = true;
+-const ic = (n) => (HAS_ICONS ? `<i data-icon="${n}"></i>` : '');
+-if (HAS_ICONS) import('./icons.js').catch(() => {});
+-
+-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+-}
+-
+-const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+-const KEY = 'pwa-banner-hidden-until';
+-let deferred = null;
+-
+-function hideBannerFor(days) { try { localStorage.setItem(KEY, String(Date.now() + days * 864e5)); } catch { /* private mode */ } document.querySelector('.install-banner')?.remove(); }
+-const bannerAllowed = () => { try { return Date.now() > Number(localStorage.getItem(KEY) || 0); } catch { return true; } };
+-
+-function help() {
+-  const wrap = document.createElement('div');
+-  wrap.className = 'modal-backdrop';
+-  const steps = isIOS
+-    ? `<ol><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share</b> button ${ic('share')} at the bottom.</li><li>Scroll and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol>`
+-    : `<ol><li>Open this page in <b>Chrome</b> (or Edge).</li><li>Tap the <b>⋮ menu</b> at the top right.</li><li>Tap <b>Install app</b> (or <b>Add to Home screen</b>).</li></ol><p class="text-muted" style="font-size:.85rem;">If you do not see it, reload the page once and try again.</p>`;
+-  wrap.innerHTML = `<div class="modal" style="max-width:420px;width:94%;"><div class="modal-head"><h3>${ic('smartphone')} Install the app</h3><button class="btn btn-ghost btn-sm" data-x aria-label="Close">&times;</button></div>
+-    <div class="modal-body"><p>Put FUGOBPANS on your phone like a normal app. It opens full screen and needs no app store.</p>${steps}<button class="btn btn-primary btn-block" data-x>Got it</button></div></div>`;
+-  document.body.appendChild(wrap);
+-  wrap.addEventListener('click', (e) => { if (e.target === wrap || e.target.closest('[data-x]')) wrap.remove(); });
+-}
+-
+-async function install() {
+-  if (deferred) { deferred.prompt(); try { await deferred.userChoice; } catch { /* ignore */ } deferred = null; document.querySelector('.install-banner')?.remove(); return; }
+-  help();
+-}
+-
+-function showBanner() {
+-  if (standalone() || !bannerAllowed() || document.querySelector('.install-banner')) return;
+-  const b = document.createElement('div');
+-  b.className = 'install-banner'; b.setAttribute('role', 'dialog'); b.setAttribute('aria-label', 'Install the app');
+-  b.innerHTML = `<img src="/assets/icons/icon-192.png" width="44" height="44" alt="" /><div class="ib-text"><strong>Install FUGOBPANS</strong><span>${isIOS ? 'Add it to your home screen.' : 'Get the app on your phone.'}</span></div>
+-    <button type="button" class="btn btn-accent btn-sm" data-go>${isIOS ? 'Show me how' : 'Install'}</button><button type="button" class="btn btn-ghost btn-sm" data-no aria-label="Not now">&times;</button>`;
+-  document.body.appendChild(b);
+-  b.querySelector('[data-go]').addEventListener('click', install);
+-  b.querySelector('[data-no]').addEventListener('click', () => hideBannerFor(7));
+-}
+-
+-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; setTimeout(showBanner, 1500); });
+-window.addEventListener('appinstalled', () => { deferred = null; document.querySelectorAll('[data-install-app], .install-banner').forEach((n) => n.remove()); });
+-
+-function mount() {
+-  if (standalone()) return;
+-  let buttons = [...document.querySelectorAll('[data-install-app]')];
+-  if (!buttons.length) {
+-    const f = document.createElement('button');
+-    f.type = 'button'; f.setAttribute('data-install-app', ''); f.className = 'install-fab';
+-    document.body.appendChild(f); buttons = [f];
++/* Registers the service worker and shows a "Download app" button only where installing is really possible.
++ *  - Android/desktop Chrome & Edge: real one-tap install via the browser prompt.
++ *  - iPhone/iPad Safari: no install prompt exists, so we show the Share -> "Add to Home Screen" steps.
++ *  - Already installed, or a browser that can't install: the button is not shown (we never promise what can't happen). */
++(function () {
++  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
++    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
++  }
++  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
++  if (standalone) return;
++
++  let deferred = null;
++  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
++  const iosSafari = ios && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
++
++  function button() {
++    if (document.getElementById('pwaInstallBtn')) return;
++    const b = document.createElement('button');
++    b.id = 'pwaInstallBtn'; b.type = 'button'; b.textContent = 'Download app';
++    b.setAttribute('aria-label', 'Download the school app');
++    b.style.cssText = 'position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;padding:11px 18px;border:0;border-radius:999px;background:#e0a93a;color:#12203d;font:700 .92rem system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer;';
++    b.addEventListener('click', onClick);
++    document.body.appendChild(b);
++  }
++  function hide() { document.getElementById('pwaInstallBtn')?.remove(); }
++  async function onClick() {
++    if (deferred) {
++      deferred.prompt();
++      const choice = await deferred.userChoice.catch(() => null);
++      deferred = null;
++      if (choice && choice.outcome === 'accepted') hide();
++      return;
++    }
++    if (iosSafari) {
++      const o = document.createElement('div');
++      o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:flex-end;justify-content:center;';
++      o.innerHTML = '<div style="background:#fff;color:#12203d;width:100%;max-width:460px;border-radius:16px 16px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));font-family:system-ui,sans-serif;"><strong style="font-size:1.05rem;">Add the app to your iPhone</strong><ol style="line-height:1.7;padding-left:20px;margin:10px 0;"><li>Tap the <strong>Share</strong> button at the bottom of Safari.</li><li>Choose <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong>.</li></ol><button type="button" style="width:100%;padding:12px;border:0;border-radius:8px;background:#12203d;color:#fff;font-weight:700;">Got it</button></div>';
++      o.addEventListener('click', (e) => { if (e.target === o || e.target.tagName === 'BUTTON') o.remove(); });
++      document.body.appendChild(o);
++    }
+   }
+-  buttons.forEach((b) => {
+-    if (b.dataset.ready) return; b.dataset.ready = '1';
+-    if (!b.innerHTML.trim()) b.innerHTML = `${ic('download')} <span>Install app</span>`;
+-    b.addEventListener('click', install);
+-  });
+-  if (isIOS && !standalone()) setTimeout(showBanner, 2500); // iPhone has no install event, so show the steps once
+-}
+-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+-window.addEventListener('load', () => setTimeout(mount, 300));
++  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; button(); });
++  window.addEventListener('appinstalled', () => { deferred = null; hide(); });
++  if (iosSafari) window.addEventListener('DOMContentLoaded', button);
++})();
+\ No newline at end of file
+diff --git a/public/manifest.webmanifest b/public/manifest.webmanifest
+index 36c900e..9a73dc2 100644
+--- a/public/manifest.webmanifest
++++ b/public/manifest.webmanifest
+@@ -1,8 +1,8 @@
+ {
++  "id": "/",
+   "name": "FUGOBPANS School",
+   "short_name": "FUGOBPANS",
+-  "description": "Register, pay fees, check results and school news on your phone.",
+-  "id": "/",
++  "description": "School announcements, student records, fees and payments — Full Gospel Bilingual Nursery and Primary School.",
+   "start_url": "/index.html",
+   "scope": "/",
+   "display": "standalone",
+@@ -14,5 +14,9 @@
+     { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+     { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+     { "src": "/assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
++  ],
++  "shortcuts": [
++    { "name": "Student Dashboard", "url": "/track-student.html", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] },
++    { "name": "Staff login", "url": "/login.html", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] }
+   ]
+ }
+diff --git a/public/sw.js b/public/sw.js
+index 56c3b20..8396909 100644
+--- a/public/sw.js
++++ b/public/sw.js
+@@ -1,22 +1,37 @@
+-/* Service worker: makes the site installable and shows a friendly page when offline.
+- * It NEVER caches API calls, logins or payments: those always go to the network. */
+-const VERSION = 'fugobpans-v2';
+-const SHELL = ['/offline.html', '/assets/icons/icon-192.png'];
+-const PUBLIC_PAGES = ['/', '/index.html', '/about.html', '/classes.html', '/admissions.html', '/contact.html', '/announcements.html', '/reviews.html', '/students.html', '/parents.html', '/register.html'];
++/* FUGOBPANS service worker.
++ * Safety rules:
++ *  - NEVER caches /api/*, other-origin requests, or any signed-in area (owner, admin, accountant, teacher, employee, student, parent),
++ *    so private data and logins are always live and nothing private is stored on the phone by this worker.
++ *  - Public pages are network-first (you always get the newest version online) and fall back to the last copy when offline.
++ *  - Bump VERSION to force every phone to drop old copies.
++ */
++const VERSION = 'v1';
++const CACHE = `fugobpans-public-${VERSION}`;
++const PRECACHE = ['/offline.html', '/index.html', '/assets/css/style.css', '/assets/css/responsive.css', '/assets/js/config.js', '/assets/js/pwa.js', '/assets/icons/icon-192.png'];
++const PRIVATE = /^\/(owner|admin|accountant|teacher|employee|student|parent|change-password|messages)(\/|\.html|$)/;
+ 
+-self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+-
+-self.addEventListener('fetch', (e) => {
+-  const req = e.request; const url = new URL(req.url);
+-  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return; // network only
+-  if (req.mode === 'navigate') {
+-    const isPublic = PUBLIC_PAGES.includes(url.pathname);
+-    e.respondWith(fetch(req).then((res) => { if (isPublic && res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); } return res; })
+-      .catch(async () => (isPublic && (await caches.match(req))) || caches.match('/offline.html')));
+-    return;
+-  }
+-  if (url.pathname.startsWith('/assets/')) { // show the saved copy fast, refresh it in the background
+-    e.respondWith(caches.open(VERSION).then(async (c) => { const hit = await c.match(req); const net = fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => hit); return hit || net; }));
+-  }
++self.addEventListener('install', (e) => {
++  e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(PRECACHE.map((u) => c.add(u)))).then(() => self.skipWaiting()));
+ });
++self.addEventListener('activate', (e) => {
++  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith('fugobpans-public-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
++});
++self.addEventListener('fetch', (e) => {
++  const req = e.request;
++  if (req.method !== 'GET') return;
++  const url = new URL(req.url);
++  if (url.origin !== self.location.origin) return;
++  if (url.pathname.startsWith('/api/') || PRIVATE.test(url.pathname) || url.pathname === '/sw.js') return;
++  e.respondWith((async () => {
++    try {
++      const fresh = await fetch(req);
++      if (fresh.ok && fresh.type === 'basic') { const copy = fresh.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
++      return fresh;
++    } catch {
++      const hit = await caches.match(req);
++      if (hit) return hit;
++      if (req.mode === 'navigate') return (await caches.match('/offline.html')) || Response.error();
++      return Response.error();
++    }
++  })());
++});
+\ No newline at end of file
+diff --git a/server/app.js b/server/app.js
+index 5f68e9b..6df2369 100644
+--- a/server/app.js
++++ b/server/app.js
+@@ -29,13 +29,19 @@ const ownerRoutes = require('./routes/owner.routes');
+ const studentsExtraRoutes = require('./routes/students-extra.routes');
+ const platformRoutes = require('./routes/platform.routes');
+ const approvalsRoutes = require('./routes/approvals.routes');
++const verificationRoutes = require('./routes/verification.routes');
++const publicPaymentsRoutes = require('./routes/public-payments.routes');
++const recoveryRoutes = require('./routes/recovery.routes');
++const remindersRoutes = require('./routes/reminders.routes');
++const reconciliationRoutes = require('./routes/reconciliation.routes');
+ 
+ const app = express();
+ // Render (and most hosts) sit behind a proxy. Without this every visitor looks like one IP,
+ // so the rate limiters would throttle the whole school together.
+ app.set('trust proxy', 1);
+ 
+-app.use(helmet());
++// Same defaults as before, plus blob: images so staff can view an uploaded payment screenshot when the site is served from here.
++app.use(helmet({ contentSecurityPolicy: { useDefaults: true, directives: { 'img-src': ["'self'", 'data:', 'blob:'] } } }));
+ app.use(compression());
+ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+ const allowedOrigins = (process.env.CLIENT_ORIGIN || '').split(',').map((s) => s.trim()).filter(Boolean);
+@@ -43,6 +49,10 @@ app.use(cors({
+   origin: allowedOrigins.length ? allowedOrigins : true,
+   credentials: true, // needed so the httpOnly session cookie is sent cross-origin
+ }));
++// Routes that carry files (payment screenshots, operator statements) need more than the 2 MB default, so they get
++// their own JSON limit and are mounted BEFORE the global parser. They keep their own rate limiting / authentication.
++app.use('/api/public-payments', apiLimiter, express.json({ limit: '6mb' }), publicPaymentsRoutes);
++app.use('/api/reconciliation', apiLimiter, cookieParser(), express.json({ limit: '9mb' }), reconciliationRoutes);
+ app.use(express.json({ limit: '2mb' }));
+ app.use(express.urlencoded({ extended: true }));
+ app.use(cookieParser());
+@@ -65,7 +75,10 @@ app.use('/api/academics', academicsRoutes);
+ app.use('/api/employees', employeesRoutes);
+ app.use('/api/attendance', attendanceRoutes);
+ app.use('/api/payroll', payrollRoutes);
++app.use('/api/payments/manual', verificationRoutes); // verification queue, evidence, decisions, history (before /api/payments)
+ app.use('/api/payments', paymentsRoutes);
++app.use('/api/recovery', recoveryRoutes); // public: tracking-number recovery by one-time code
++app.use('/api/reminders', remindersRoutes); // fee reminders, messaging settings, instalment schedules
+ app.use('/api/results', resultsRoutes);
+ app.use('/api/reviews', reviewsRoutes);
+ app.use('/api/assignments', assignmentsRoutes);
+@@ -84,8 +97,12 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Endpoint not found.
+ // frontend is hosted on Firebase Hosting.
+ if (process.env.SERVE_FRONTEND === 'true') {
+   const path = require('path');
+-  app.use(express.static(path.join(__dirname, '../public'), { extensions: ['html'] }));
++  app.use(express.static(path.join(__dirname, '../public'), {
++    extensions: ['html'],
++    // The service worker and manifest must never be served stale, or phones keep running old app code.
++    setHeaders: (res, file) => { if (/[\\/](sw\.js|manifest\.webmanifest)$/.test(file)) res.setHeader('Cache-Control', 'no-cache'); },
++  }));
+ }
+ app.use(errorHandler);
+ 
+-module.exports = app;
++module.exports = app;
+\ No newline at end of file

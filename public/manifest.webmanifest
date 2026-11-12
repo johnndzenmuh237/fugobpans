@@ -2,7 +2,7 @@
   "id": "/",
   "name": "FUGOBPANS School",
   "short_name": "FUGOBPANS",
-  "description": "School portal: messages, notifications, fees, results and news on your phone.",
+  "description": "School announcements, student records, fees and payments — Full Gospel Bilingual Nursery and Primary School.",
   "start_url": "/login.html?source=pwa",
   "scope": "/",
   "display": "standalone",
@@ -20,6 +20,8 @@
     { "src": "/assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Messages", "short_name": "Messages", "url": "/communication.html?source=shortcut", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+    { "name": "Student Dashboard", "url": "/track-student.html", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Staff login", "url": "/login.html", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Messages", "short_name": "Messages", "url": "/communication.html?source=shortcut", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
