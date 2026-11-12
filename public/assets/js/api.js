@@ -9,7 +9,7 @@ import { toast } from './utils.js';
 
 const BASE = () => window.APP_CONFIG.API_BASE_URL;
 
-async function request(path, { method = 'GET', body, raw = false } = {}) {
+async function request(path, { method = 'GET', body, raw = false, quiet = false } = {}) {
   const url = path.startsWith('http') ? path : `${BASE()}${path}`;
   const res = await fetch(url, {
     method,
@@ -24,15 +24,16 @@ async function request(path, { method = 'GET', body, raw = false } = {}) {
 
   if (!res.ok) {
     const message = (isJson && data && data.error) || `Request failed (${res.status})`;
-    toast(message, 'error');
+    if (!quiet) toast(message, 'error');
     throw new Error(message);
   }
   return data;
 }
 
 export const api = {
-  get: (path) => request(path),
+  get: (path, opts) => request(path, opts),
   post: (path, body) => request(path, { method: 'POST', body }),
+  put: (path, body) => request(path, { method: 'PUT', body }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   del: (path) => request(path, { method: 'DELETE' }),
 };

@@ -29,6 +29,8 @@ const ownerRoutes = require('./routes/owner.routes');
 const studentsExtraRoutes = require('./routes/students-extra.routes');
 const platformRoutes = require('./routes/platform.routes');
 const approvalsRoutes = require('./routes/approvals.routes');
+const conversationsRoutes = require('./routes/conversations.routes');
+const pushRoutes = require('./routes/push.routes');
 
 const app = express();
 // Render (and most hosts) sit behind a proxy. Without this every visitor looks like one IP,
@@ -59,6 +61,8 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/approvals', approvalsRoutes); // expense approvals
+app.use('/api/conversations', conversationsRoutes); // staff<->management and manager<->owner private threads
+app.use('/api/push', pushRoutes); // web push subscriptions + notification preferences
 app.use('/api', studentsExtraRoutes); // student update, lifecycle/history, discipline, student attendance
 app.use('/api', registrationRoutes); // /api/registrations, /api/students
 app.use('/api/academics', academicsRoutes);

@@ -1,18 +1,25 @@
 {
+  "id": "/",
   "name": "FUGOBPANS School",
   "short_name": "FUGOBPANS",
-  "description": "Register, pay fees, check results and school news on your phone.",
-  "id": "/",
-  "start_url": "/index.html",
+  "description": "School portal: messages, notifications, fees, results and news on your phone.",
+  "start_url": "/login.html?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#12203d",
   "theme_color": "#12203d",
   "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "business"],
+  "prefer_related_applications": false,
   "icons": [
     { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Messages", "short_name": "Messages", "url": "/communication.html?source=shortcut", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
   ]
 }

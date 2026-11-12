@@ -30,10 +30,12 @@ const employeeController = {
     res.json(await employees.getEmployeeProfile(req.user.linkedEmployeeId));
   }),
   create: asyncHandler(async (req, res) => res.status(201).json(await employees.createEmployee(req.body, req.user))),
-  createLogin: asyncHandler(async (req, res) => res.status(201).json(await employees.createEmployeeLogin(req.body, req.user))),
+  createLogin: asyncHandler(async (req, res) => res.status(201).json(await employees.createEmployeeLogin({ ...req.body, employeeId: req.params.id }, req.user))),
   listPositions: asyncHandler(async (req, res) => {
     const { rows } = await query('SELECT * FROM positions ORDER BY name');
-    res.json(rows);
+    // default_salary is pay information: only people who can manage workers may see it.
+    const mayManage = require('../middleware/roles').isManagementLevel(req.user) && (req.user.role === 'OWNER' || req.user.role === 'MANAGER' || req.user.permissions?.teachers === true || req.user.permissions?.finance === true);
+    res.json(mayManage ? rows : rows.map(({ default_salary, ...rest }) => rest));
   }),
   createPosition: asyncHandler(async (req, res) => {
     const { rows } = await query('INSERT INTO positions (name, department_id, default_salary) VALUES ($1,$2,$3) RETURNING *', [req.body.name, req.body.departmentId || null, req.body.defaultSalary || 0]);

@@ -2,7 +2,7 @@
  * Brings an EXISTING database up to date (safe to run repeatedly, e.g. on every Render deploy).
  *   Fresh database:   npm run migrate      (applies schema.sql)   then   npm run upgrade-db
  *   Existing database: npm run upgrade-db
- * Applies migrations 6, 7 and 8 once each and records them in schema_migrations.
+ * Applies migrations 6, 7, 8 and 9 once each and records them in schema_migrations.
  * Nothing is dropped or rewritten; migrations 7 and 8 only add tables/columns/triggers.
  * Works on Neon (use the DIRECT connection string, not the "-pooler" one, for migrations).
  */
@@ -12,9 +12,10 @@ const path = require('path');
 const { pool } = require('../server/config/db');
 
 const STEPS = [
-  { name: 'migration-6-tracking-leave-announcements', alreadyThere: "SELECT to_regclass('public.employee_leave') IS NOT NULL AS yes" },
+  { name: 'migration-6-tracking-leave-announcements', alreadyThere: "SELECT to_regclass('public.announcements') IS NOT NULL AS yes" },
   { name: 'migration-7-owner-management', alreadyThere: null },
   { name: 'migration-8-school-platform', alreadyThere: null },
+  { name: 'migration-9-communication-push', alreadyThere: null },
 ];
 
 async function main() {

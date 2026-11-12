@@ -1,4 +1,5 @@
-import { login } from './auth.js';
+import { login, homeFor } from './auth.js';
+import { api } from './api.js';
 import { toast } from './utils.js';
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -15,3 +16,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     btn.textContent = 'Log In';
   }
 });
+
+// Opened from the installed app (or any time) while still signed in: go straight to the person's own dashboard.
+(async () => {
+  try {
+    const res = await api.get('/auth/me', { quiet: true });
+    if (res && res.role) location.replace(res.mustChangePassword ? '/change-password.html' : homeFor(res.role));
+  } catch { /* not signed in: stay on the form */ }
+})();

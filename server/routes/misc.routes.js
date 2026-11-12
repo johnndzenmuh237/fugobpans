@@ -9,6 +9,8 @@ router.get('/dashboard/registrations', requireAuth, allowRoles(ROLES.MANAGER, RO
 router.get('/dashboard/categories', requireAuth, allowRoles(ROLES.MANAGER), dashboardController.categoryBreakdown);
 
 router.get('/notifications', requireAuth, ctrl.listNotifications);
+router.post('/notifications', requireAuth, allowRoles(ROLES.MANAGER), needs('announcements'), ctrl.sendNotification);
+router.get('/notifications/sent', requireAuth, allowRoles(ROLES.MANAGER), needs('announcements'), ctrl.sentNotifications);
 router.get('/notifications/unread-count', requireAuth, ctrl.unreadCount);
 router.post('/notifications/read-all', requireAuth, ctrl.markAllNotificationsRead);
 router.patch('/notifications/:id/read', requireAuth, ctrl.markNotificationRead);

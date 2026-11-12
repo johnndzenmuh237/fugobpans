@@ -5,6 +5,9 @@ const { writeAudit } = require('../utils/auditLogger');
 
 async function updateSalary({ employeeId, basicSalary, allowances = 0, bonuses = 0, deductions = 0, effectiveDate }, actor) {
   if (!employeeId || basicSalary === undefined) throw new AppError('employeeId and basicSalary are required.');
+  const { parseMoney } = require('./employeeService');
+  if (parseMoney(basicSalary) === null || parseMoney(allowances) === null || parseMoney(deductions) === null || parseMoney(bonuses) === null) throw new AppError('Salary amounts must be numbers of 0 or more.');
+  if (!(await query('SELECT 1 FROM employees WHERE id = $1', [employeeId])).rows.length) throw new AppError('Employee not found.', 404);
   const { rows } = await query(
     `INSERT INTO salary_history (employee_id, basic_salary, allowances, bonuses, deductions, effective_date)
      VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
@@ -15,7 +18,7 @@ async function updateSalary({ employeeId, basicSalary, allowances = 0, bonuses =
 }
 
 async function currentSalary(employeeId) {
-  const { rows } = await query('SELECT * FROM salary_history WHERE employee_id = $1 ORDER BY effective_date DESC LIMIT 1', [employeeId]);
+  const { rows } = await query('SELECT * FROM salary_history WHERE employee_id = $1 ORDER BY effective_date DESC, created_at DESC LIMIT 1', [employeeId]);
   return rows[0] || null;
 }
 
@@ -31,7 +34,7 @@ async function generatePayroll({ period }, actor) {
     let totalNet = 0;
     let count = 0;
     for (const emp of employees.rows) {
-      const salRes = await client.query('SELECT * FROM salary_history WHERE employee_id = $1 ORDER BY effective_date DESC LIMIT 1', [emp.id]);
+      const salRes = await client.query('SELECT * FROM salary_history WHERE employee_id = $1 ORDER BY effective_date DESC, created_at DESC LIMIT 1', [emp.id]);
       if (!salRes.rows.length) continue;
       const sal = salRes.rows[0];
       const net = computeNetSalary({ basicSalary: sal.basic_salary, allowances: sal.allowances, bonuses: sal.bonuses, deductions: sal.deductions });

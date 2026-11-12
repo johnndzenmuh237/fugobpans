@@ -1,6 +1,7 @@
 import { requireRole, logout, MANAGEMENT_ROLES } from './auth.js';
 import { api } from './api.js';
 import { initials, escapeHtml, formatDateTime } from './utils.js';
+import { openNotificationSettings, autoSync, maybeInvite } from './push-client.js';
 
 /** Sidebar structure per role (spec §31, §100). */
 const NAV = {
@@ -40,6 +41,8 @@ const NAV = {
       { key: 'reports', href: '/admin/reports.html', icon: '<i data-icon="trending-up"></i>', label: 'Reports' },
       { key: 'announcements', href: '/admin/announcements.html', icon: '<i data-icon="megaphone"></i>', label: 'Announcements' },
       { key: 'messages', href: '/messages.html', icon: '<i data-icon="mail"></i>', label: 'Messages' },
+      { key: 'comm-staff', href: '/communication.html?channel=staff', icon: '<i data-icon="message-square"></i>', label: 'Staff Messages' },
+      { key: 'comm-owner', href: '/communication.html?channel=owner', icon: '<i data-icon="message-square"></i>', label: 'Message the Owner' },
       { key: 'notifications', href: '/admin/notifications.html', icon: '<i data-icon="bell"></i>', label: 'Notifications' },
       { key: 'reviews', href: '/admin/reviews.html', icon: '<i data-icon="star"></i>', label: 'Reviews' },
       { key: 'audit-logs', href: '/admin/audit-logs.html', icon: '<i data-icon="lock"></i>', label: 'Audit Log' },
@@ -53,6 +56,8 @@ const NAV = {
       { key: 'outstanding', href: '/accountant/outstanding-fees.html', icon: '<i data-icon="triangle-alert"></i>', label: 'Outstanding Fees' },
       { key: 'receipts', href: '/accountant/receipts.html', icon: '<i data-icon="file-text"></i>', label: 'Receipts' },
       { key: 'messages', href: '/messages.html', icon: '<i data-icon="mail"></i>', label: 'Messages' },
+      { key: 'comm-staff', href: '/communication.html?channel=staff', icon: '<i data-icon="message-square"></i>', label: 'Message Management' },
+      { key: 'notifications', href: '/notifications.html', icon: '<i data-icon="bell"></i>', label: 'Notifications' },
     ]},
     { label: 'Business Management', links: [
       { key: 'expenses', href: '/admin/expenses.html', icon: '<i data-icon="banknote"></i>', label: 'Expenses' },
@@ -74,6 +79,8 @@ const NAV = {
       { key: 'schedule', href: '/teacher/schedule.html', icon: '<i data-icon="clock"></i>', label: 'My Timetable' },
       { key: 'leave', href: '/teacher/my-leave.html', icon: '<i data-icon="leaf"></i>', label: 'My Leave' },
       { key: 'messages', href: '/messages.html', icon: '<i data-icon="mail"></i>', label: 'Messages' },
+      { key: 'comm-staff', href: '/communication.html?channel=staff', icon: '<i data-icon="message-square"></i>', label: 'Message Management' },
+      { key: 'notifications', href: '/notifications.html', icon: '<i data-icon="bell"></i>', label: 'Notifications' },
       { key: 'profile', href: '/teacher/profile.html', icon: '<i data-icon="user"></i>', label: 'My Profile' },
     ]},
   ],
@@ -83,6 +90,8 @@ const NAV = {
       { key: 'attendance', href: '/employee/attendance.html', icon: '<i data-icon="calendar"></i>', label: "Today's Attendance" },
       { key: 'profile', href: '/employee/profile.html', icon: '<i data-icon="user"></i>', label: 'My Profile' },
       { key: 'messages', href: '/messages.html', icon: '<i data-icon="mail"></i>', label: 'Messages' },
+      { key: 'comm-staff', href: '/communication.html?channel=staff', icon: '<i data-icon="message-square"></i>', label: 'Message Management' },
+      { key: 'notifications', href: '/notifications.html', icon: '<i data-icon="bell"></i>', label: 'Notifications' },
     ]},
   ],
   STUDENT: [
@@ -94,6 +103,7 @@ const NAV = {
       { key: 'schedule', href: '/student/dashboard.html#schedule', icon: '<i data-icon="clock"></i>', label: 'Class Timetable' },
       { key: 'attendance', href: '/student/dashboard.html#attendance', icon: '<i data-icon="circle-check"></i>', label: 'My Attendance' },
       { key: 'messages', href: '/messages.html', icon: '<i data-icon="mail"></i>', label: 'Messages' },
+      { key: 'notifications', href: '/notifications.html', icon: '<i data-icon="bell"></i>', label: 'Notifications' },
     ]},
   ],
 };
@@ -105,6 +115,7 @@ NAV.PARENT = [
     { key: 'fees', href: '/parent/dashboard.html#fees', icon: '<i data-icon="wallet"></i>', label: 'Fees & Payments' },
     { key: 'schedule', href: '/parent/dashboard.html#schedule', icon: '<i data-icon="clock"></i>', label: 'Timetable' },
     { key: 'messages', href: '/messages.html', icon: '<i data-icon="mail"></i>', label: 'Messages & Announcements' },
+    { key: 'notifications', href: '/notifications.html', icon: '<i data-icon="bell"></i>', label: 'Notifications' },
   ]},
 ];
 // The Owner sees everything the management side has, plus the controls only the Owner has.
@@ -113,8 +124,10 @@ NAV.OWNER = [
     { key: 'owner-dashboard', href: '/owner/dashboard.html', icon: '<i data-icon="layout-dashboard"></i>', label: 'School Overview' },
     { key: 'owner-management', href: '/owner/management.html', icon: '<i data-icon="key-round"></i>', label: 'Principals & Administrators' },
     { key: 'owner-records', href: '/owner/records.html', icon: '<i data-icon="folder-open"></i>', label: 'School Records' },
+    { key: 'owner-inbox', href: '/communication.html?channel=owner', icon: '<i data-icon="message-square"></i>', label: 'Manager Messages' },
   ]},
-  ...NAV.MANAGER.filter((g) => g.label !== null || g.links[0].key !== 'dashboard'),
+  // The Owner is the receiving end of "Message the Owner", so that link is not shown to them.
+  ...NAV.MANAGER.filter((g) => g.label !== null || g.links[0].key !== 'dashboard').map((g) => ({ ...g, links: g.links.filter((l) => l.key !== 'comm-owner') })),
 ];
 
 // Which Owner-granted permission unlocks each management menu item (the server enforces the same rules).
@@ -124,7 +137,7 @@ const LINK_PERMISSION = {
   'fee-structures': 'finance', payments: 'finance', outstanding: 'finance', payroll: 'finance', expenses: 'finance', 'income-statement': 'finance',
   budgets: 'finance', debts: 'finance', sales: 'finance', inventory: 'finance',
   employees: 'teachers', attendance: 'teachers', leave: 'teachers',
-  reports: 'reports', 'audit-logs': 'reports', reviews: 'reports', announcements: 'announcements',
+  reports: 'reports', 'audit-logs': 'reports', reviews: 'reports', announcements: 'announcements', 'comm-staff': 'teachers',
 };
 const TOP_LEVEL_ONLY = ['settings'];
 
@@ -144,7 +157,7 @@ function renderSidebar(groups, activeKey) {
   return groups.map((g) => `
     <div class="nav-group">
       ${g.label ? `<div class="nav-group-label">${g.label}</div>` : ''}
-      ${g.links.map((l) => `<a class="nav-link ${l.key === activeKey ? 'is-active' : ''}" href="${l.href}"><span class="icon">${l.icon}</span> ${l.label}</a>`).join('')}
+      ${g.links.map((l) => `<a class="nav-link ${l.key === activeKey ? 'is-active' : ''}" href="${l.href}" data-key="${l.key}"><span class="icon">${l.icon}</span> ${l.label}</a>`).join('')}
     </div>`).join('');
 }
 
@@ -157,6 +170,21 @@ function wireDrawer() {
   backdrop?.addEventListener('click', close);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   document.querySelectorAll('#appSidebar .nav-link').forEach((a) => a.addEventListener('click', close));
+}
+
+/** Unread counters next to the conversation links in the sidebar. */
+async function refreshNavBadges() {
+  try {
+    const c = await api.get('/conversations/unread-count', { quiet: true });
+    const role = JSON.parse(sessionStorage.getItem('fugobs_profile') || '{}').role;
+    const counts = {};
+    if (['TEACHER', 'EMPLOYEE', 'ACCOUNTANT'].includes(role)) counts['comm-staff'] = c.mine;
+    else { counts['comm-staff'] = c.staffInbox; counts['comm-owner'] = c.mine; counts['owner-inbox'] = c.ownerInbox; }
+    document.querySelectorAll('#sidebarNav .nav-link[data-key]').forEach((a) => {
+      const n = counts[a.dataset.key]; a.querySelector('.nav-badge')?.remove();
+      if (n) a.insertAdjacentHTML('beforeend', `<span class="nav-badge" aria-label="${n} unread">${n > 99 ? '99+' : n}</span>`);
+    });
+  } catch { /* quiet */ }
 }
 
 async function wireNotifications() {
@@ -179,19 +207,21 @@ async function wireNotifications() {
   refreshCount();
   setInterval(refreshCount, 45000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCount(); });
+  navigator.serviceWorker?.addEventListener('message', (e) => { if (e.data?.type === 'push-received') { refreshCount(); refreshNavBadges(); if (!panel.classList.contains('hidden')) load(); } });
 
   const TYPE_ICON = { SUCCESS: '<i data-icon="circle-check"></i>', WARNING: '<i data-icon="triangle-alert"></i>', ERROR: '<i data-icon="circle-x"></i>', INFO: '<i data-icon="info"></i>' };
   async function load() {
     panel.innerHTML = '<div class="notif-item">Loading…</div>';
     try {
       const items = await api.get('/notifications?limit=30');
-      const head = `<div class="notif-head"><strong>Notifications</strong><button type="button" id="notifReadAll" class="btn btn-ghost btn-sm">Mark all read</button></div>`;
+      const head = `<div class="notif-head"><strong>Notifications</strong><span><button type="button" id="notifSettings" class="btn btn-ghost btn-sm" title="Notification settings">Settings</button><button type="button" id="notifReadAll" class="btn btn-ghost btn-sm">Mark all read</button></span></div>`;
       panel.innerHTML = head + (items.length ? items.map((n) => {
         const from = [n.sender_name && n.sender_name !== 'System' ? escapeHtml(n.sender_name) : 'System', n.department ? escapeHtml(n.department) : ''].filter(Boolean).join(' · ');
         return `<div class="notif-item ${n.read ? '' : 'unread'}" data-id="${n.id}" data-link="${n.link ? escapeHtml(n.link) : ''}" style="cursor:pointer;">
           <div class="title">${TYPE_ICON[n.type] || ''} ${escapeHtml(n.title)}</div><div>${escapeHtml(n.message)}</div>
           <div class="text-muted" style="margin-top:4px;font-size:.75rem;">${from} · ${formatDateTime(n.created_at)}${n.link ? ' · <u>Open</u>' : ''}</div></div>`;
-      }).join('') : '<div class="notif-item text-muted">No notifications yet.</div>');
+      }).join('') : '<div class="notif-item text-muted">No notifications yet.</div>') + '<a class="notif-item" href="/notifications.html" style="display:block;text-align:center;font-weight:600;">View all history</a>';
+      panel.querySelector('#notifSettings')?.addEventListener('click', (e) => { e.stopPropagation(); panel.classList.add('hidden'); openNotificationSettings(); });
       panel.querySelector('#notifReadAll')?.addEventListener('click', async (e) => { e.stopPropagation(); await api.post('/notifications/read-all', {}); await load(); refreshCount(); });
       panel.querySelectorAll('.notif-item[data-id]').forEach((el) => el.addEventListener('click', async () => {
         try { await api.patch(`/notifications/${el.dataset.id}/read`, {}); } catch {}
@@ -224,5 +254,9 @@ export async function initPortalLayout({ portal, activeKey }) {
   document.getElementById('logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); logout(); });
   wireDrawer();
   wireNotifications();
+  refreshNavBadges();
+  setInterval(refreshNavBadges, 45000);
+  autoSync();
+  maybeInvite(document.querySelector('.app-content'));
   return profile;
 }

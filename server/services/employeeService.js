@@ -11,9 +11,20 @@ const { writeAudit } = require('../utils/auditLogger');
  * which is what "automatically appears in Attendance" means in practice
  * — attendance is derived from the employees table, not a separate list.
  */
+/** Returns a non-negative number with at most 2 decimals, or null when the value is missing/invalid. */
+function parseMoney(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0 || n > 1e10) return null;
+  return Math.round(n * 100) / 100;
+}
+
 async function createEmployee(body, actor) {
   const required = ['firstName', 'lastName', 'phone', 'positionId'];
   for (const f of required) if (!body[f]) throw new AppError(`Missing required field: ${f}`);
+  // Salary is required for every new worker (0 is allowed for volunteers). Existing workers without one keep working.
+  const salary = parseMoney(body.basicSalary);
+  if (salary === null) throw new AppError('Salary is required and must be a number of 0 or more.');
 
   return withTransaction(async (client) => {
     const employeeCode = await nextId('EMP');
@@ -31,12 +42,10 @@ async function createEmployee(body, actor) {
     );
     const employee = rows[0];
 
-    if (body.basicSalary) {
-      await client.query(
-        `INSERT INTO salary_history (employee_id, basic_salary, allowances, deductions) VALUES ($1,$2,$3,$4)`,
-        [employee.id, body.basicSalary, body.allowances || 0, body.deductions || 0]
-      );
-    }
+    await client.query(
+      `INSERT INTO salary_history (employee_id, basic_salary, allowances, deductions) VALUES ($1,$2,$3,$4)`,
+      [employee.id, salary, parseMoney(body.allowances) || 0, parseMoney(body.deductions) || 0]
+    );
 
     await writeAudit({ user: actor, action: 'CREATE_EMPLOYEE', entity: 'employees', entityId: employee.id, after: employee });
     return employee;
@@ -62,7 +71,9 @@ async function createEmployeeLogin({ employeeId, email, password, role }, actor)
 }
 
 async function listEmployees(filters = {}) {
-  let sql = `SELECT e.*, p.name AS position_name, d.name AS department_name FROM employees e
+  let sql = `SELECT e.*, p.name AS position_name, d.name AS department_name,
+             (SELECT basic_salary FROM salary_history s WHERE s.employee_id = e.id ORDER BY effective_date DESC, created_at DESC LIMIT 1) AS current_salary
+             FROM employees e
              LEFT JOIN positions p ON p.id = e.position_id LEFT JOIN departments d ON d.id = e.department_id WHERE 1=1`;
   const params = [];
   if (filters.positionId) { params.push(filters.positionId); sql += ` AND e.position_id = $${params.length}`; }
@@ -80,11 +91,11 @@ async function getEmployeeProfile(id) {
   );
   if (!rows.length) throw new AppError('Employee not found.', 404);
 
-  const salary = await query('SELECT * FROM salary_history WHERE employee_id = $1 ORDER BY effective_date DESC', [id]);
+  const salary = await query('SELECT * FROM salary_history WHERE employee_id = $1 ORDER BY effective_date DESC, created_at DESC', [id]);
   const attendance = await query(
     `SELECT status, COUNT(*) FROM employee_attendance WHERE employee_id = $1 GROUP BY status`, [id]
   );
   return { ...rows[0], salaryHistory: salary.rows, attendanceSummary: attendance.rows };
 }
 
-module.exports = { createEmployee, createEmployeeLogin, listEmployees, getEmployeeProfile };
+module.exports = { parseMoney, createEmployee, createEmployeeLogin, listEmployees, getEmployeeProfile };
