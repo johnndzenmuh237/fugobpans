@@ -1,7 +1,7 @@
 import { initPortalLayout } from './layout.js';
 import { api } from './api.js';
 import { renderTable, openFormModal } from './crud-table.js';
-import { escapeHtml, toast, qs } from './utils.js';
+import { escapeHtml, toast, qs, formatCurrency } from './utils.js';
 
 let positions = [];
 let departments = [];
@@ -13,6 +13,7 @@ async function load() {
     { key: 'employee_code', label: 'ID', render: (r) => `<span class="mono">${r.employee_code}</span>` },
     { key: 'position_name', label: 'Position' },
     { key: 'department_name', label: 'Department' },
+    { key: 'current_salary', label: 'Salary', render: (r) => (r.current_salary == null ? '<span class="text-muted">Not set</span>' : escapeHtml(formatCurrency(r.current_salary))) },
     { key: 'status', label: 'Status' },
   ]);
 }
@@ -43,9 +44,9 @@ async function main() {
       { name: 'email', label: 'Email' },
       { name: 'positionId', label: 'Position', type: 'select', required: true, options: positions.map((p) => ({ value: p.id, label: p.name })) },
       { name: 'departmentId', label: 'Department', type: 'select', options: departments.map((d) => ({ value: d.id, label: d.name })) },
-      { name: 'basicSalary', label: 'Basic Salary (FCFA)', type: 'number' },
+      { name: 'basicSalary', label: 'Monthly Salary (FCFA) — visible only to management and this worker', type: 'number', required: true },
     ],
-    onSubmit: async (v) => { await api.post('/employees', { ...v, basicSalary: Number(v.basicSalary) || undefined }); toast('Worker added — they now appear on Attendance automatically.', 'success'); load(); },
+    onSubmit: async (v) => { await api.post('/employees', { ...v, basicSalary: Number(v.basicSalary) }); toast('Worker added — they now appear on Attendance automatically.', 'success'); load(); },
   }));
 }
 main();

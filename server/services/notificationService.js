@@ -1,5 +1,6 @@
 const { query } = require('../config/db');
 const { ROLES, MANAGEMENT_ROLES } = require('../middleware/roles');
+const push = require('./pushService');
 
 const ALL_MANAGEMENT = [ROLES.MANAGER, ...MANAGEMENT_ROLES];
 
@@ -16,7 +17,7 @@ const ALL_MANAGEMENT = [ROLES.MANAGER, ...MANAGEMENT_ROLES];
  * Never throws: a failed notification must not break the action that caused it.
  */
 async function notify({ toRole = null, toRoles = [], toUserId = null, toUserIds = [], title, message, type = 'INFO', link = null,
-  sender = null, department = null, entity = null, entityId = null, alsoOwner = true }) {
+  sender = null, department = null, entity = null, entityId = null, alsoOwner = true, pushKind = 'update' }) {
   try {
     const roles = new Set([...(toRole ? [toRole] : []), ...toRoles]);
     if (alsoOwner && [...roles].some((r) => ALL_MANAGEMENT.includes(r))) roles.add(ROLES.OWNER);
@@ -28,9 +29,26 @@ async function notify({ toRole = null, toRoles = [], toUserId = null, toUserIds 
       [r, u, String(title).slice(0, 150), msg, type, link, sender?.uid || null, sender?.name || 'System', sender?.role || null, department, entity, entityId]);
     for (const r of roles) await insert(r, null);
     for (const u of users) await insert(null, u);
+    // Background (web push) delivery to the same people, in addition to the in-app bell. Fire-and-forget.
+    pushToAudience({ roles: [...roles], userIds: [...users], exclude: sender?.uid, title, message: msg, link, pushKind, entityId })
+      .catch((e) => console.error('[notify] push failed:', e.message));
   } catch (e) {
     console.error('[notify] failed:', e.message);
   }
+}
+
+/** Who receives a role-wide notification: the role itself, plus (for the legacy MANAGER role) every management post. */
+async function pushToAudience({ roles, userIds, exclude, title, message, link, pushKind, entityId }) {
+  if (!push.isConfigured()) return;
+  const roleSet = new Set(roles);
+  if (roleSet.has(ROLES.MANAGER)) MANAGEMENT_ROLES.forEach((r) => roleSet.add(r));
+  const ids = new Set(userIds);
+  if (roleSet.size) {
+    const { rows } = await query(`SELECT id FROM users WHERE status = 'ACTIVE' AND role::text = ANY($1)`, [[...roleSet]]);
+    rows.forEach((r) => ids.add(r.id));
+  }
+  if (exclude) ids.delete(exclude);
+  await push.pushToUsers([...ids], { title, body: message, url: link || '/', kind: pushKind, tag: entityId ? String(entityId) : undefined });
 }
 
 /** Roles whose role-wide notifications a person should see. Management also sees legacy 'MANAGER' ones. */

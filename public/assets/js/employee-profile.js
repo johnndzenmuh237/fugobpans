@@ -18,6 +18,7 @@ async function main() {
     <div class="form-grid">
       <div class="card card-pad"><h3>Contact</h3><p><strong>Phone:</strong> ${escapeHtml(e.phone)}</p><p><strong>WhatsApp:</strong> ${escapeHtml(e.whatsapp || '—')}</p><p><strong>Email:</strong> ${escapeHtml(e.email || '—')}</p></div>
       <div class="card card-pad"><h3>Employment</h3><p><strong>Start date:</strong> ${formatDate(e.start_date)}</p><p><strong>Type:</strong> ${e.employment_type}</p><p><strong>Status:</strong> ${e.status}</p></div>
+      <div class="card card-pad"><h3>Current Salary</h3><p style="font-size:1.4rem;font-weight:700;margin:6px 0;">${e.salaryHistory[0] ? formatCurrency(e.salaryHistory[0].basic_salary) : '<span class="text-muted">Not set</span>'}</p><p class="text-muted" style="font-size:.8rem;">Net after allowances and deductions: ${e.salaryHistory[0] ? formatCurrency(e.salaryHistory[0].net_salary) : '—'}</p></div>
       <div class="card card-pad form-row-full"><h3>Salary History</h3>
         <div class="table-wrap"><table><thead><tr><th>Effective</th><th>Basic</th><th>Net</th></tr></thead><tbody>
           ${e.salaryHistory.map((h) => `<tr><td>${formatDate(h.effective_date)}</td><td>${formatCurrency(h.basic_salary)}</td><td>${formatCurrency(h.net_salary)}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No salary set yet.</div></td></tr>'}

@@ -28,6 +28,7 @@ async function main() {
         <p><strong>Status:</strong> ${e.status}</p>
       </div>
       <div class="card card-pad"><h3>Attendance Summary</h3><p class="text-muted">${attendanceRows || 'No attendance recorded yet.'}</p></div>
+      <div class="card card-pad"><h3>My Salary</h3><p style="font-size:1.4rem;font-weight:700;margin:6px 0;">${(e.salaryHistory || [])[0] ? formatCurrency(e.salaryHistory[0].basic_salary) : '<span class="text-muted">Not set yet</span>'}</p><p class="text-muted" style="font-size:.8rem;">Private to you and school management.</p></div>
       <div class="card card-pad form-row-full"><h3>Salary History</h3>
         <div class="table-wrap"><table><thead><tr><th>Effective</th><th>Basic</th><th>Net</th></tr></thead><tbody>
           ${(e.salaryHistory || []).map((h) => `<tr><td>${formatDate(h.effective_date)}</td><td>${formatCurrency(h.basic_salary)}</td><td>${formatCurrency(h.net_salary)}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">Not yet set by the Manager.</div></td></tr>'}

@@ -13,6 +13,8 @@
     "apply-migration": "node scripts/apply-migration.js",
     "create-manager": "node scripts/create-manager.js",
     "absence-sweep": "node scripts/run-absence-sweep.js",
+    "vapid": "node scripts/generate-vapid-keys.js",
+    "e2e": "node scripts/e2e-communication.js",
     "test": "jest"
   },
   "dependencies": {

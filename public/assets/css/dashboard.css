@@ -43,3 +43,32 @@
 .bar-row .bar { height:10px; border-radius:5px; background:var(--indigo-500); }
 .perm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:6px; margin:8px 0; }
 .perm-grid label { display:flex; gap:8px; align-items:center; font-size:.88rem; }
+
+/* ---- Conversations + sidebar unread badge ---- */
+.nav-badge { margin-left:auto; min-width:20px; height:20px; padding:0 6px; border-radius:10px; background:#dc2626; color:#fff; font-size:.7rem; font-weight:700; line-height:20px; text-align:center; }
+.nav-link { align-items:center; }
+.conv-layout { display:grid; grid-template-columns:minmax(260px,340px) 1fr; gap:16px; align-items:start; }
+.conv-list { display:flex; flex-direction:column; gap:8px; max-height:70vh; overflow:auto; }
+.conv-item { text-align:left; width:100%; cursor:pointer; border:1px solid var(--slate-200,#e2e8f0); background:#fff; border-radius:10px; padding:10px 12px; font:inherit; }
+.conv-item.is-active { border-color:var(--navy,#12203d); box-shadow:0 0 0 2px rgba(18,32,61,.12); }
+.conv-item.unread { border-left:4px solid #dc2626; background:#fff7f7; }
+.conv-item .row { display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+.conv-item .sub { font-size:.8rem; color:var(--slate-500,#64748b); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.conv-thread { display:flex; flex-direction:column; gap:10px; max-height:55vh; overflow:auto; padding:4px; }
+.bubble { max-width:85%; padding:10px 12px; border-radius:12px; background:#f1f5f9; white-space:pre-wrap; word-break:break-word; }
+.bubble.me { align-self:flex-end; background:#e0e7ff; }
+.bubble .meta { font-size:.72rem; color:#64748b; margin-bottom:4px; }
+.pill { display:inline-block; font-size:.7rem; padding:1px 8px; border-radius:999px; background:#e2e8f0; margin-left:6px; }
+.pill.COMPLAINT { background:#fee2e2; } .pill.REQUEST { background:#fef3c7; } .pill.QUESTION { background:#dbeafe; }
+@media (max-width: 820px) { .conv-layout { grid-template-columns:1fr; } .conv-list { max-height:40vh; } .bubble { max-width:95%; } }
+.conv-layout > * { min-width:0; }
+.conv-item { min-width:0; overflow:hidden; overflow-wrap:anywhere; }
+.conv-item .row strong, .bubble, .conv-thread, #threadMount h3 { overflow-wrap:anywhere; }
+#threadMount .card, #pageRoot input[type=search] { max-width:100%; box-sizing:border-box; }
+/* Phones: the top bar must fit without sideways scrolling */
+@media (max-width: 640px) {
+  .app-topbar #userName, .app-topbar .install-btn span { display:none; }
+  .app-topbar > div:last-child { gap:4px !important; }
+  .app-topbar .btn-sm { padding-left:8px; padding-right:8px; }
+  .app-topbar .left strong { max-width:38vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+}

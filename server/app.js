@@ -29,11 +29,8 @@ const ownerRoutes = require('./routes/owner.routes');
 const studentsExtraRoutes = require('./routes/students-extra.routes');
 const platformRoutes = require('./routes/platform.routes');
 const approvalsRoutes = require('./routes/approvals.routes');
-const verificationRoutes = require('./routes/verification.routes');
-const publicPaymentsRoutes = require('./routes/public-payments.routes');
-const recoveryRoutes = require('./routes/recovery.routes');
-const remindersRoutes = require('./routes/reminders.routes');
-const reconciliationRoutes = require('./routes/reconciliation.routes');
+const conversationsRoutes = require('./routes/conversations.routes');
+const pushRoutes = require('./routes/push.routes');
 
 const app = express();
 // Render (and most hosts) sit behind a proxy. Without this every visitor looks like one IP,
@@ -51,8 +48,6 @@ app.use(cors({
 }));
 // Routes that carry files (payment screenshots, operator statements) need more than the 2 MB default, so they get
 // their own JSON limit and are mounted BEFORE the global parser. They keep their own rate limiting / authentication.
-app.use('/api/public-payments', apiLimiter, express.json({ limit: '6mb' }), publicPaymentsRoutes);
-app.use('/api/reconciliation', apiLimiter, cookieParser(), express.json({ limit: '9mb' }), reconciliationRoutes);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -69,16 +64,15 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/approvals', approvalsRoutes); // expense approvals
+app.use('/api/conversations', conversationsRoutes);
+app.use('/api/push', pushRoutes);
 app.use('/api', studentsExtraRoutes); // student update, lifecycle/history, discipline, student attendance
 app.use('/api', registrationRoutes); // /api/registrations, /api/students
 app.use('/api/academics', academicsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payroll', payrollRoutes);
-app.use('/api/payments/manual', verificationRoutes); // verification queue, evidence, decisions, history (before /api/payments)
 app.use('/api/payments', paymentsRoutes);
-app.use('/api/recovery', recoveryRoutes); // public: tracking-number recovery by one-time code
-app.use('/api/reminders', remindersRoutes); // fee reminders, messaging settings, instalment schedules
 app.use('/api/results', resultsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/assignments', assignmentsRoutes);

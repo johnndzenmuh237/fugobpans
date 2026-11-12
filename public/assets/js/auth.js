@@ -27,6 +27,7 @@ export async function login(email, password) {
 }
 
 export async function logout() {
+  try { const { detachDevice } = await import('./push-client.js'); await detachDevice(); } catch { /* push is optional */ }
   await api.post('/auth/logout', {});
   sessionStorage.removeItem('fugobs_profile');
   window.location.href = '/login.html';

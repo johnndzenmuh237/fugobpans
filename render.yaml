@@ -12,6 +12,12 @@ services:
         value: production
       - key: DATABASE_URL          # Neon connection string (see docs/DEPLOYMENT-render-neon-firebase.md)
         sync: false
+      - key: VAPID_PUBLIC_KEY      # Web push: run `npm run vapid` once and paste the values (see README, 'Phone notifications')
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT         # e.g. mailto:owner@yourschool.com
+        sync: false
       - key: JWT_SECRET
         generateValue: true        # Render generates a long random secret
       - key: CLIENT_ORIGIN         # your Firebase site(s), comma separated, no trailing slash

@@ -4,17 +4,24 @@
  *  - Already installed, or a browser that can't install: the button is not shown (we never promise what can't happen). */
 (function () {
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(() => {});
   }
   const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if (standalone) return;
+  const slots = () => [...document.querySelectorAll('[data-install-app]')];
+  const setSlots = (on) => slots().forEach((b) => {
+    if (on && !b.dataset.ready) { b.dataset.ready = '1'; if (!b.textContent.trim()) b.innerHTML = '<span>Install app</span>'; b.addEventListener('click', onClick); }
+    b.style.display = on ? '' : 'none';
+  });
+  if (standalone) { document.addEventListener('DOMContentLoaded', () => setSlots(false)); return; }
+  document.addEventListener('DOMContentLoaded', () => setSlots(!!deferred || iosSafari));
 
   let deferred = null;
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
   const iosSafari = ios && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
 
   function button() {
-    if (document.getElementById('pwaInstallBtn')) return;
+    setSlots(true);
+    if (document.getElementById('pwaInstallBtn') || document.querySelector('[data-install-app]')) return;
     const b = document.createElement('button');
     b.id = 'pwaInstallBtn'; b.type = 'button'; b.textContent = 'Download app';
     b.setAttribute('aria-label', 'Download the school app');
@@ -22,7 +29,7 @@
     b.addEventListener('click', onClick);
     document.body.appendChild(b);
   }
-  function hide() { document.getElementById('pwaInstallBtn')?.remove(); }
+  function hide() { document.getElementById('pwaInstallBtn')?.remove(); setSlots(false); }
   async function onClick() {
     if (deferred) {
       deferred.prompt();
